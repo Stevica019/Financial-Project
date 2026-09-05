@@ -7,10 +7,10 @@ Build a personal finance app for daily use: record financial activity, see accou
 This is also a full-stack project with authentication, backend validation, relational data, automated tests, and deployment.
 
 - Planning budget: 25 days at roughly 4 hours per day (100 hours). This is a target, not a delivery guarantee.
-- Current state: Laravel 13/Sanctum backend and React/Vite/MUI frontend scaffolded with SQLite and API foundation checks. Authentication flows and financial features are not implemented yet. See README.md for setup.
+- Current state: Laravel 13/Sanctum backend and React/Vite/MUI frontend with SQLite, registration, login/logout, protected workspace, and session restoration. Backend, frontend, and browser authentication tests are in place. Financial features and user currency/timezone settings are next. See README.md for setup.
 - Each registered user manages their own finances. Shared accounts and households are outside the initial scope.
 - This document is the project brief. Keep it updated when scope or architecture decisions change.
-- Technical defaults below are proposed starting points, not decisions already confirmed by the user or implemented in code.
+- The React/REST/Laravel stack and cookie authentication below are implemented. Financial design rules remain the implementation brief for the next stages.
 
 ## Scope and priorities
 
@@ -25,19 +25,19 @@ Complete and verify each tier before adding the next. Testing, authorization, an
 
 The MVP can be completed independently. The original full-project target includes both the MVP and extended version. If time runs short, reduce feature scope explicitly rather than dropping correctness, testing, or deployment.
 
-## Proposed architecture
+## Architecture
 
-Preserve the original preferred technologies while choosing one communication approach:
+The implemented foundation uses:
 
 - Frontend: React, JavaScript, MUI, Vite, React Router, Axios.
 - Backend: Laravel/PHP exposing a REST API.
 - Authentication: Laravel Sanctum with session cookies for the first-party frontend; configure CSRF protection and deployment origins accordingly.
 - Database: SQLite for local development; PostgreSQL for production. Verify migrations and important database behavior against PostgreSQL before release.
-- Tests: Vitest with React Testing Library; PHPUnit for backend behavior.
+- Tests: Vitest with React Testing Library; PHPUnit for backend behavior; Playwright for the browser authentication flow.
 - Tooling: Git and GitHub.
 - Add Laravel Scheduler when recurring transactions are implemented. Add queues only when a concrete workload needs them.
 
-Inertia remains an alternative if the architecture is reconsidered before implementation; do not combine both approaches without a clear need. Choose supported package versions at setup time and document them in the repository.
+Keep the existing REST architecture. Exact package versions are recorded in lockfiles. PostgreSQL, scheduler processing, and queues are not configured yet.
 
 ## Financial rules
 

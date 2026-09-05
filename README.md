@@ -1,8 +1,8 @@
 # Personal Finance
 
-Initial Laravel API and React frontend foundation. See [Project.md](Project.md) for scope and financial rules.
+Laravel API and React frontend for personal finance. See [Project.md](Project.md) for scope and financial rules.
 
-Implemented: Laravel/Sanctum API scaffolding, SQLite migrations, a public API health endpoint, a protected current-user endpoint, and a React/MUI landing page. Registration, login, and financial features are not implemented yet.
+Implemented: registration, login/logout, cookie-based session restoration, protected workspace, backend validation and authentication rate limits, SQLite migrations, and API health checks. Financial features are not implemented yet.
 
 ## Environment
 
@@ -25,9 +25,13 @@ From the project folder:
 ```powershell
 cd backend
 composer install
-Copy-Item .env.example .env
-php artisan key:generate
-New-Item -ItemType File -Path database/database.sqlite -Force
+if (!(Test-Path .env)) {
+    Copy-Item .env.example .env
+    php artisan key:generate
+}
+if (!(Test-Path database/database.sqlite)) {
+    New-Item -ItemType File -Path database/database.sqlite
+}
 php artisan migrate
 ```
 
@@ -52,7 +56,11 @@ npm.cmd run dev
 
 Open http://127.0.0.1:5173. Vite proxies /api and /sanctum to Laravel on port 8000. Use the same hostname consistently. GET /api/health returns {"status":"ok"}; GET /api/user requires authentication.
 
-Sanctum is installed; the session-based registration/login/logout flow and stateful SPA middleware still need implementation. No frontend environment variables are needed at this stage.
+Open the registration link to create your own local user. Passwords require at least 12 characters and at most 72 UTF-8 bytes. Email addresses are normalized to lowercase. Password recovery and email verification are not implemented yet.
+
+Authentication follows [Sanctum's SPA cookie flow](https://laravel.com/framework/docs/sanctum): fetch /sanctum/csrf-cookie, then POST /api/register or /api/login. POST /api/logout invalidates the session. Authentication endpoints use Laravel's web middleware for sessions and CSRF; other protected API routes use stateful Sanctum middleware. No authentication tokens are stored in browser storage.
+
+Local frontend hosts on port 5173 are included in config/sanctum.php. If you change the frontend origin, set SANCTUM_STATEFUL_DOMAINS in backend/.env to the exact host and port. No frontend environment variables are required for normal development. API_PROXY_TARGET is an optional Vite server setting used by isolated browser tests.
 
 ## Verification
 
@@ -67,10 +75,14 @@ From a separate terminal at the project root:
 ```powershell
 cd frontend
 npm.cmd run lint
+npm.cmd test
 npm.cmd run build
+npm.cmd run test:e2e
 ```
 
-The API tests verify health routing and rejection of unauthenticated access. Generated Laravel example tests remain. Financial behavior tests and frontend test tooling will be added with the relevant features.
+Backend tests cover registration, password validation/hashing, duplicate emails, login failures, rate limits, session renewal/logout, and protected current-user access. Frontend tests cover forms, validation feedback, session restoration, logout failures, and recovery from unavailable or malformed responses. Generated Laravel example tests remain.
+
+Browser tests use installed Microsoft Edge by default and require PHP on PATH (or PHP_BINARY set to its executable). They start separate servers on ports 8011 and 5174 and use a fresh temporary SQLite database, leaving development data untouched. CSRF remains enabled. The test database is left in the operating system's temporary folder for diagnosis; test reports are ignored by Git. To use installed Chrome instead, set PLAYWRIGHT_CHANNEL=chrome. Both test ports must be free.
 
 ## Structure and next work
 
@@ -78,6 +90,6 @@ The API tests verify health routing and rejection of unauthenticated access. Gen
 - frontend/: React/JavaScript, MUI, Axios, React Router, Vite.
 - Project.md: requirements, priorities, roadmap.
 
-Next: implement session authentication end to end, then user settings, accounts, categories, and ownership tests. Local Git is initialized; no remote repository or commits are created automatically.
+Next: user currency/timezone settings, accounts, categories (including registration defaults), and ownership tests. The signed-in workspace is an empty state until financial features are built. Commit each verified milestone separately; commits are not created automatically.
 
 Production deployment is not configured. It needs PostgreSQL verification, production secrets and cookie settings, frontend hosting with API routing, and a deployment smoke test. The Vite development proxy is not a production reverse proxy.

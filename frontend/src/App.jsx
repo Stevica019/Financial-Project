@@ -1,24 +1,30 @@
-import { Container, CssBaseline, Paper, Stack, Typography } from '@mui/material'
+﻿import { Alert, Box, Button, CircularProgress, Container, CssBaseline, Stack, Typography } from '@mui/material'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { useAuth } from './auth/useAuth'
+import AuthPage from './auth/AuthPage'
+import Dashboard from './Dashboard'
 
 export default function App() {
-  return (
-    <>
-      <CssBaseline />
-      <Container component="main" maxWidth="md" sx={{ py: { xs: 5, md: 12 } }}>
-        <Stack spacing={3}>
-          <Typography variant="overline" color="text.secondary">Personal Finance</Typography>
-          <Typography variant="h3" component="h1">A clearer view of your money.</Typography>
-          <Typography color="text.secondary" sx={{ maxWidth: 560 }}>
-            Keep your accounts, daily spending, and financial goals in one place.
-          </Typography>
-          <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h6" component="h2" gutterBottom>Getting started</Typography>
-            <Typography color="text.secondary">
-              This app is under construction. Account registration and sign-in are coming next.
-            </Typography>
-          </Paper>
-        </Stack>
-      </Container>
-    </>
-  )
+  const { status, retry } = useAuth()
+  let content
+  if (status === 'checking') {
+    content = <Stack role="status" spacing={2} sx={{ alignItems: 'center' }}><CircularProgress aria-label="Checking your session" /><Typography>Loading your workspace…</Typography></Stack>
+  } else if (status === 'error') {
+    content = <Alert severity="error" action={<Button color="inherit" onClick={retry}>Try again</Button>}>Unable to check your session. Please try again.</Alert>
+  } else {
+    const signedIn = status === 'authenticated'
+    content = <Routes>
+      <Route path="/login" element={signedIn ? <Navigate to="/" replace /> : <AuthPage key="login" />} />
+      <Route path="/register" element={signedIn ? <Navigate to="/" replace /> : <AuthPage key="register" register />} />
+      <Route path="/" element={signedIn ? <Dashboard /> : <Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  }
+  return <>
+    <CssBaseline />
+    <Container maxWidth="md" sx={{ py: { xs: 3, md: 7 } }}>
+      <Typography variant="overline" color="text.secondary">Personal Finance</Typography>
+      <Box component="main" sx={{ display: 'flex', justifyContent: 'center', py: { xs: 4, md: 7 } }}>{content}</Box>
+    </Container>
+  </>
 }
