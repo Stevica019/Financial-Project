@@ -1,0 +1,13 @@
+# Local secrets, dependencies, build outputs, and databases
+**/.env
+**/.env.*
+!**/.env.example
+**/auth.json
+**/node_modules/
+**/vendor/
+**/dist/
+**/*.sqlite
+**/*.sqlite-*
+*.log
+.DS_Store
+Thumbs.db
