@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\RecurringRuleController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TransferController;
@@ -17,6 +19,8 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::middleware(['auth:sanctum', FinanceWriteLock::class])->group(function () {
+    Route::apiResource('budgets', BudgetController::class)->except(['show']);
+    Route::apiResource('recurring-rules', RecurringRuleController::class)->except(['show']);
     Route::get('/dashboard', [DashboardController::class, 'show']);
     Route::get('/settings', [SettingsController::class, 'show']);
     Route::put('/settings', [SettingsController::class, 'update']);

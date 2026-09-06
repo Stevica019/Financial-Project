@@ -18,6 +18,16 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    public function budgets(): HasMany
+    {
+        return $this->hasMany(Budget::class);
+    }
+
+    public function recurringRules(): HasMany
+    {
+        return $this->hasMany(RecurringRule::class);
+    }
+
     public function accounts(): HasMany
     {
         return $this->hasMany(Account::class);

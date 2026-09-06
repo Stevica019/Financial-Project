@@ -6,11 +6,13 @@ Read this file first when resuming work, then [Project.md](Project.md) for requi
 
 ## Current handoff
 
-- Latest committed checkpoint: `75a631f` (transaction browsing and transfers). Earlier foundation milestones are recorded in Git.
-- Implemented since that checkpoint (uncommitted): financial dashboard API and Overview page with current account/total balances, month selection, monthly income/expenses/net cash flow, and latest 10 entries/transfers. No new migration is required.
-- Balances include archived accounts and all dates. Monthly summaries exclude transfers and opening balances. The default month uses the user's timezone; recent activity covers all dates and shows each transfer once. Dashboard reads share the financial writers' per-owner lock for a consistent summary.
-- Next milestone: MVP release verification, PostgreSQL checks, production configuration/deployment and demo. Required MVP feature milestones are implemented; the release milestone remains open.
-- Last verified on 2026-09-06: 43 backend tests (567 assertions), 12 frontend tests, 7 browser tests, frontend lint/build, and PHP formatting passed. Dashboard coverage includes leap/year/month boundaries, timezone defaults, ownership, archived balances, exact arithmetic, corrections/deletions, month selection, error recovery and mobile layout. The existing bundle-size warning remains; PostgreSQL is not yet verified.
+- Latest committed checkpoint: `0ae4311` (financial dashboard), reviewed by the user. Earlier foundation milestones are recorded in Git.
+- Implemented since that checkpoint (uncommitted): monthly expense-category budgets, spent/remaining/percentage progress, dashboard budget summaries, and daily/weekly/monthly/yearly recurring income and expense rules with edit/pause/resume/delete screens.
+- The user deferred MVP release on 2026-09-06 to implement these two extended milestones. PostgreSQL verification, production deployment and the release checklist remain open.
+- Recurring processing uses user-local dates, anchored month/year clamping, inclusive end dates, bounded catch-up, atomic receipt/entry/schedule writes and durable retry protection even after generated entries are deleted. Account archiving pauses rules; unarchiving does not resume them.
+- The additive budget/recurring migration has been applied to the local database. Existing financial records are preserved. The every-minute scheduler is registered; start it locally with `php artisan schedule:work` from backend. No persistent OS scheduler task was installed. Operating instructions are in README.md.
+- Verified on 2026-09-06: 55 backend tests (723 assertions), 14 frontend tests, 8 browser tests, frontend lint/build and PHP formatting. Tests include two simultaneous scheduler workers on a temporary SQLite database, failure rollback/retry, DST and leap/month/year boundaries, budget corrections, ownership, migration rollback/reapplication and mobile CRUD/error states. The existing bundle-size warning remains.
+- SQLite uses IMMEDIATE transactions and a five-second busy timeout to avoid concurrent read-to-write lock upgrades; this is verified with PHP 8.4. PostgreSQL behavior is still unverified.
 - Browser test files now run with separate backends/databases so unrelated registration workflows do not share rate-limit quotas. Production rate limits are unchanged.
 - Tooling change: ESLint 10 with React Hooks checks replaces Oxlint because Windows blocked Oxlint's native module. No Windows security policy was changed.
 
@@ -33,10 +35,10 @@ Complete each feature with its backend, usable UI, validation, ownership checks,
 
 ### Extended version
 
-Begin after the MVP functionality is stable. Preserve time for deployment and verification.
+The user requested budgets and recurring transactions before MVP release. Preserve the deferred release checklist below.
 
-- [ ] Monthly category budgets and progress.
-- [ ] Recurring income/expenses, scheduler, retry safety, and scheduling tests.
+- [x] Monthly category budgets and progress.
+- [x] Recurring income/expenses, scheduler, retry safety, and scheduling tests.
 - [ ] Savings goals with manually tracked progress.
 - [ ] Monthly reports and previous-month comparisons.
 - [ ] Verify and deploy the extended version; document scheduler operation.
@@ -50,7 +52,13 @@ Only pursue these after required work, with scope confirmed in Project.md.
 - Deferred beyond the initial project: currency conversion and bank integrations.
 - Optional follow-ups not yet implemented: password recovery and email verification.
 
-## Next session: MVP release
+## Next work
+
+The requested budgets and recurring milestones are complete locally and ready for review; changes are not committed. The next extended milestone is savings goals with manually tracked progress, followed by monthly reports. Neither was included in this implementation request. Keep scheduler operation documented and complete production database/release checks before deployment.
+
+## Deferred MVP release
+
+User follow-up: the current frontend is acceptable for now but looks basic. Consider a dedicated visual polish pass in an upcoming change, covering layout, typography, spacing and overall presentation. This is a future candidate, not a request to start a redesign immediately; retain the working financial flows and responsive/keyboard behavior.
 
 1. Inspect the release checklist in Project.md, current environment and deployment requirements in README.md.
 2. Configure an isolated PostgreSQL database and PHP driver; verify migrations, financial behavior, filtering/history queries and concurrent financial writes without touching local financial data.

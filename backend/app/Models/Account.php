@@ -8,6 +8,11 @@ class Account extends Model
 {
     protected $fillable = ['name', 'type', 'opening_balance', 'opening_date', 'description', 'is_active'];
 
+    public function recurringRules()
+    {
+        return $this->hasMany(RecurringRule::class);
+    }
+
     public function transactions()
     {
         return $this->hasMany(Transaction::class);

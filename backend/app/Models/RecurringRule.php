@@ -4,13 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Transaction extends Model
+class RecurringRule extends Model
 {
-    protected $fillable = ['account_id', 'category_id', 'type', 'amount', 'date', 'description', 'notes', 'recurring_rule_id', 'scheduled_date'];
+    protected $fillable = ['account_id', 'category_id', 'type', 'amount', 'description', 'notes', 'frequency', 'start_date', 'next_execution_date', 'end_date', 'is_active'];
 
     protected function casts(): array
     {
-        return ['amount' => 'integer', 'date' => 'immutable_date'];
+        return ['amount' => 'integer', 'is_active' => 'boolean'];
     }
 
     public function account()

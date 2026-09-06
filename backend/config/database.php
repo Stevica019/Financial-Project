@@ -38,10 +38,12 @@ return [
             'database' => env('DB_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
-            'busy_timeout' => null,
+            'busy_timeout' => 5000,
             'journal_mode' => null,
             'synchronous' => null,
-            'transaction_mode' => 'DEFERRED',
+            // Acquire SQLite's write lock before reading financial references.
+            // Laravel uses this transaction mode with PHP 8.4 and later.
+            'transaction_mode' => 'IMMEDIATE',
         ],
 
         'mysql' => [

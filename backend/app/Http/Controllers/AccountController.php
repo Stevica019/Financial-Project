@@ -44,10 +44,13 @@ class AccountController extends Controller
     {
         $account = $request->user()->accounts()->findOrFail($account);
         $data = $this->validated($request, $request->user(), true);
-        if (isset($data['opening_date']) && ($account->transactions()->where('date', '<', $data['opening_date'])->exists() || $account->transfers()->where('date', '<', $data['opening_date'])->exists())) {
+        if (isset($data['opening_date']) && ($account->recurringRules()->where('start_date', '<', $data['opening_date'])->exists() || $account->transactions()->where('date', '<', $data['opening_date'])->exists() || $account->transfers()->where('date', '<', $data['opening_date'])->exists())) {
             throw ValidationException::withMessages(['opening_date' => 'Opening date cannot be later than existing activity.']);
         }
         $account->update($data);
+        if (! $account->is_active) {
+            $account->recurringRules()->update(['is_active' => false]);
+        }
 
         return new AccountResource($account);
     }
@@ -55,7 +58,7 @@ class AccountController extends Controller
     public function destroy(Request $request, string $account)
     {
         $account = $request->user()->accounts()->findOrFail($account);
-        if ($account->transactions()->exists() || $account->transfers()->exists()) {
+        if ($account->recurringRules()->exists() || $account->transactions()->exists() || $account->transfers()->exists()) {
             throw ValidationException::withMessages(['account' => 'This account has activity. Archive it to preserve its history.']);
         }
         $account->delete();

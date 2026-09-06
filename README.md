@@ -59,7 +59,7 @@ Open the registration link to create your own local user. Passwords require at l
 
 After signing in, complete Settings to choose currency and timezone. Existing users are prompted too. All accounts share the selected currency; creating the first account locks that choice permanently. Timezone can still be changed. Supported currencies: EUR, RSD, USD, GBP, CHF, CAD, AUD.
 
-Overview shows current total and per-account balances (including archived accounts), monthly income/expenses/net cash flow, and the latest 10 entries/transfers across all dates. Choose Summary month to change the monthly figures; its default is the current month in your timezone. Opening balances and transfers do not count as income or expenses. Current balances and recent activity are independent of the selected month. Returning to Overview or using Refresh reloads the financial data. The dashboard requires no additional migrations.
+Overview shows current total and per-account balances (including archived accounts), monthly income/expenses/net cash flow, and the latest 10 entries/transfers across all dates. Choose Summary month to change the monthly figures; its default is the current month in your timezone. Opening balances and transfers do not count as income or expenses. Current balances and recent activity are independent of the selected month. Returning to Overview or using Refresh reloads the financial data. Budget progress for the selected month is also shown; apply the extended-feature migration below.
 
 Accounts supports opening balances/dates, calculated current balances, editing, archiving/unarchiving, deletion of unused accounts, and View history. Categories includes editable defaults and custom income/expense categories. Referenced accounts/categories cannot be deleted, and categories used by entries cannot change type.
 
@@ -69,11 +69,44 @@ Use Apply filters to search descriptions/notes and combine account, category, ty
 
 Transfers supports creating, editing and deleting a single transfer between two distinct owned accounts. Amounts are positive decimal strings; the date must be on/after both opening dates and no later than today in your timezone. Description is optional. New endpoints must be active; an existing archived endpoint can remain in place during a correction. Transfers affect both balances but do not count as income or expenses, and accounts referenced by transfers cannot be deleted or have their opening date moved past the transfer. The Transfers list also supports description search, either-account filtering, date/amount ranges, sorting and pagination.
 
-For an existing checkout, run `composer install`, `php artisan migrate` in backend, and `npm.cmd ci` in frontend after pulling these changes. All migrations, including transfers, have already been applied on the original development machine. Existing users and financial records are preserved.
+For an existing checkout, run `composer install`, `php artisan migrate` in backend, and `npm.cmd ci` in frontend after pulling these changes. The extended-feature migration adds budgets, recurring rules, durable occurrence receipts and nullable scheduling references on transactions. Existing users and financial records are preserved.
 
 Authentication follows [Sanctum's SPA cookie flow](https://laravel.com/framework/docs/sanctum): fetch /sanctum/csrf-cookie, then POST /api/register or /api/login. POST /api/logout invalidates the session. Authentication endpoints use Laravel's web middleware for sessions and CSRF; other protected API routes use stateful Sanctum middleware. No authentication tokens are stored in browser storage.
 
 Local frontend hosts on port 5173 are included in config/sanctum.php. If you change the frontend origin, set SANCTUM_STATEFUL_DOMAINS in backend/.env to the exact host and port. No frontend environment variables are required for normal development. API_PROXY_TARGET is an optional Vite server setting used by isolated browser tests.
+
+## Budgets and recurring transactions
+
+Budgets lets you select a month and create, edit or delete a limit for each expense category. Spent, remaining and percentage used are derived from matching expenses, including archived accounts. Remaining can be negative. Transfers and opening balances are excluded, and there is no rollover. Overview shows the same progress for its selected month.
+
+Recurring supports daily, weekly, monthly and yearly income/expense rules, optional inclusive end dates, editing, pause/resume and deletion. Monthly/yearly schedules clamp short months without losing their original anchor (January 31, February 28/29, then March 31). Dates follow the user's timezone. Creating a rule with a past start date generates its missed entries when processing runs. Edits apply from today onward and skip overdue ungenerated dates; pausing/resuming skips paused dates. Archiving an account pauses its rules; unarchiving requires an explicit resume. Deleting a rule preserves generated entries.
+
+From backend, apply the additive schema update before using these pages:
+
+```powershell
+php artisan migrate
+```
+
+Run the scheduler in a separate local terminal:
+
+```powershell
+php artisan schedule:work
+```
+
+For a single processing run or backlog catch-up:
+
+```powershell
+php artisan finance:process-recurring --limit=100
+php artisan schedule:list
+```
+
+The scheduled command runs every minute, processes up to 100 due occurrences per invocation and continues missed dates on later invocations. The manual limit accepts 1 to 10000. A successful run prints the processed occurrence count; a zero count means no eligible work was advanced. Failed runs return a nonzero exit code and Laravel logs the exception. Previously committed occurrences remain; rerun after resolving the failure. Corrections or deletions of generated entries do not get undone by retries.
+
+For production, configure one cron entry to run `php artisan schedule:run` every minute from the deployed backend directory, or the equivalent repeating Windows Task Scheduler action with that working directory and the full PHP executable path. Capture command output and monitor nonzero exits and overdue next-execution dates. No queue worker is required. No persistent OS task has been installed by this change.
+
+The scheduler uses a ten-minute overlap lock, plus database transactions and unique occurrence constraints. After an abrupt process termination, the overlap lock can delay processing until it expires; only clear it with `php artisan schedule:clear-cache` after confirming the previous scheduler is no longer running. SQLite's IMMEDIATE transaction mode needs PHP 8.4+ and waits up to five seconds for a competing writer. Concurrent processing is tested on SQLite/PHP 8.4; PostgreSQL verification remains deferred with release work.
+
+If PHP is absent from PATH on the original machine, use `& "$env:USERPROFILE/.config/herd-lite/bin/php.exe" artisan test` from backend, and set `$env:PHP_BINARY="$env:USERPROFILE/.config/herd-lite/bin/php.exe"` before browser tests.
 
 ## Verification
 
@@ -102,6 +135,8 @@ Transaction tests cover exact balances through entry creation, amount/type/accou
 Browsing/transfer tests cover combined filters, literal wildcard search, inclusive dates and amounts, stable pagination, mixed history with overlapping transaction/transfer IDs, total-balance preservation, changing either transfer endpoint, archive/reference guards, and cross-user rejection. Browser tests cover filter controls and error recovery, deleting the last row on a page, preserved filters after editing, and the transfer lifecycle from both account histories.
 
 Dashboard tests cover exact totals, archived accounts, month/year/leap-day boundaries, timezone defaults, ownership, bounded recent activity, and effects of edits/deletions. Frontend checks cover loading and retry behavior and month selection. The mobile browser workflow verifies summaries, transfer display, history navigation and refreshed corrections.
+
+Extended-feature tests cover budget uniqueness, exact spending and corrections, ownership and reference guards, month-end/leap/year/timezone boundaries, bounded catch-up, edits, pause/resume/archive behavior, inclusive end dates, failure rollback, deleted-entry retry protection, and two simultaneous scheduler processes against a temporary SQLite database. The concurrency test also verifies migration rollback/reapplication preserves transactions. Frontend tests cover failed budget loads and rule status changes; the mobile browser workflow covers budget and recurring-rule CRUD, duplicate validation and dashboard progress.
 
 Browser tests use installed Microsoft Edge by default and require PHP on PATH (or PHP_BINARY set to its executable). They start separate servers on ports 8011 and 5174 and use a fresh temporary SQLite database, leaving development data untouched. CSRF remains enabled. The test database is left in the operating system's temporary folder for diagnosis; test reports are ignored by Git. To use installed Chrome instead, set PLAYWRIGHT_CHANNEL=chrome. Both test ports must be free.
 

@@ -9,6 +9,8 @@ import Categories from './pages/Categories'
 import Overview from './pages/Overview'
 import Transactions from './pages/Transactions'
 import Transfers from './pages/Transfers'
+import Budgets from './pages/Budgets'
+import RecurringRules from './pages/RecurringRules'
 
 export default function App() {
   const { status, user, retry } = useAuth()
@@ -31,6 +33,8 @@ export default function App() {
         <Route path="/transactions" element={configured ? <Transactions /> : <Navigate to="/settings" replace />} />
         <Route path="/transfers" element={configured ? <Transfers /> : <Navigate to="/settings" replace />} />
         <Route path="/categories" element={configured ? <Categories /> : <Navigate to="/settings" replace />} />
+        <Route path="/budgets" element={configured ? <Budgets /> : <Navigate to="/settings" replace />} />
+        <Route path="/recurring" element={configured ? <RecurringRules /> : <Navigate to="/settings" replace />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

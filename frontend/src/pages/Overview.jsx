@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useRemote } from '../useRemote'
 import RemoteState from '../components/RemoteState'
 import TransferDetails from '../components/TransferDetails'
+import BudgetProgress from '../components/BudgetProgress'
 
 function SummaryCard({ label, amount, currency }) {
   return <Paper component="section" aria-label={label} variant="outlined" sx={{ p: 3, flexGrow: 1, minWidth: 0, borderRadius: 3 }}>
@@ -29,7 +30,7 @@ export default function Overview() {
     <Stack spacing={1}>
       <TextField label="Summary month" type="month" value={month || data?.month || ''} onChange={event => setMonth(event.target.value)}
         slotProps={{ inputLabel: { shrink: true } }} sx={{ maxWidth: 260 }} />
-      <Typography variant="body2" color="text.secondary">The month controls income, expenses and net cash flow. Balances and recent activity cover all dates.</Typography>
+      <Typography variant="body2" color="text.secondary">The month controls income, expenses, net cash flow and budgets. Balances and recent activity cover all dates.</Typography>
     </Stack>
     <RemoteState remote={remote}>
       {data && <>
@@ -41,6 +42,15 @@ export default function Overview() {
           <SummaryCard label="Net cash flow" amount={data.monthly.net_cash_flow} currency={data.currency} />
         </Stack>
         <Typography variant="body2" color="text.secondary">Net cash flow is income minus expenses. Opening balances and transfers are excluded.</Typography>
+        <Stack component="section" aria-label="Monthly budgets" spacing={2}>
+          <Typography component="h3" variant="h6">Monthly budgets</Typography>
+          {!data.budgets?.length && <Typography>No budgets for this month.</Typography>}
+          {data.budgets?.map(budget => <Paper key={budget.id} variant="outlined" sx={{ p: 2 }}>
+            <Typography component="h4">{budget.name}</Typography>
+            <BudgetProgress budget={budget} currency={data.currency} />
+          </Paper>)}
+          <Button component={Link} to="/budgets">Manage budgets</Button>
+        </Stack>
         <Stack component="section" aria-label="Account balances" spacing={2}>
           <Typography component="h3" variant="h6">Account balances</Typography>
           {data.accounts.length === 0 && <Paper variant="outlined" sx={{ p: 3 }}>No accounts yet. Add an account to start tracking your money.</Paper>}

@@ -35,7 +35,7 @@ function Editor({ noun, fields, initialValues, onClose, onSave, editing }) {
   </Dialog>
 }
 
-export default function ResourceManager({ title, noun, endpoint, writeEndpoint = endpoint, fields, defaults, details, archivable = false, onSaved, introduction, browseFields, recordConfig }) {
+export default function ResourceManager({ title, noun, endpoint, writeEndpoint = endpoint, fields, defaults, details, archivable = false, archiveLabels = ['Archive', 'Unarchive'], onSaved, introduction, browseFields, recordConfig }) {
   const [filters, setFilters] = useState({})
   const [page, setPage] = useState(1)
   const query = new URLSearchParams({ ...filters, page })
@@ -64,7 +64,10 @@ export default function ResourceManager({ title, noun, endpoint, writeEndpoint =
     try {
       await api.patch(`${endpoint}/${record.id}`, { is_active: !record.is_active })
       remote.reload()
-    } catch (cause) { setError(requestError(cause)) }
+    } catch (cause) {
+      const messages = cause.response?.status === 422 ? Object.values(cause.response.data.errors ?? {}).flat().join(' ') : ''
+      setError(messages || requestError(cause))
+    }
     finally { setBusy(false) }
   }
   async function remove() {
@@ -98,7 +101,7 @@ export default function ResourceManager({ title, noun, endpoint, writeEndpoint =
             {details(record)}
             <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
               <Button disabled={busy} onClick={() => { setError(''); setEditor(record) }}>Edit</Button>
-              {archivable && <Button disabled={busy} onClick={() => archive(record)}>{record.is_active ? 'Archive' : 'Unarchive'}</Button>}
+              {archivable && <Button disabled={busy} onClick={() => archive(record)}>{record.is_active ? archiveLabels[0] : archiveLabels[1]}</Button>}
               <Button color="error" disabled={busy} onClick={() => { setError(''); setDeleting(record) }}>Delete</Button>
             </Stack>
           </Stack>

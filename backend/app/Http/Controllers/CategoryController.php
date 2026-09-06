@@ -33,8 +33,8 @@ class CategoryController extends Controller
     public function destroy(Request $request, string $category)
     {
         $category = $request->user()->categories()->findOrFail($category);
-        if ($category->transactions()->exists()) {
-            throw ValidationException::withMessages(['category' => 'This category is used by existing activity and cannot be deleted.']);
+        if ($category->transactions()->exists() || $category->budgets()->exists() || $category->recurringRules()->exists()) {
+            throw ValidationException::withMessages(['category' => 'This category is used by activity, budgets or recurring rules and cannot be deleted.']);
         }
         $category->delete();
 
@@ -48,8 +48,8 @@ class CategoryController extends Controller
             'type' => ['required', Rule::in(['income', 'expense'])],
         ]);
         $data['name_key'] = mb_strtolower($data['name']);
-        if ($category && $category->type !== $data['type'] && $category->transactions()->exists()) {
-            throw ValidationException::withMessages(['type' => 'A category used by existing activity cannot change type.']);
+        if ($category && $category->type !== $data['type'] && ($category->transactions()->exists() || $category->budgets()->exists() || $category->recurringRules()->exists())) {
+            throw ValidationException::withMessages(['type' => 'A category used by activity, budgets or recurring rules cannot change type.']);
         }
         $duplicate = $request->user()->categories()->where('type', $data['type'])->where('name_key', $data['name_key']);
         if ($category) {

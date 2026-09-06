@@ -14,7 +14,7 @@ This is also a full-stack project with authentication, backend validation, relat
 
 ## Scope and priorities
 
-Complete and verify each tier before adding the next. Testing, authorization, and usable error states are part of each feature.
+The user deferred MVP release work on 2026-09-06 and requested monthly budgets and recurring transactions next. Keep release verification and deployment open while implementing these extended features. Testing, authorization, and usable error states are part of each feature.
 
 | Tier | Features |
 | --- | --- |
@@ -37,7 +37,7 @@ The implemented foundation uses:
 - Tooling: Git and GitHub.
 - Add Laravel Scheduler when recurring transactions are implemented. Add queues only when a concrete workload needs them.
 
-Keep the existing REST architecture. Exact package versions are recorded in lockfiles. PostgreSQL, scheduler processing, and queues are not configured yet.
+Keep the existing REST architecture. Exact package versions are recorded in lockfiles. Scheduler processing is implemented; operating commands are in README.md. PostgreSQL and queues are not configured yet.
 
 ## Financial rules
 
@@ -133,7 +133,7 @@ Keep charts limited to useful summaries. Every asynchronous screen needs loading
 
 Browsing APIs use `search`, `account_id`, `category_id`, `type`, `date_from`, `date_to`, `amount_min`, `amount_max`, `sort`, `direction`, `page`, and `per_page`. Date/amount ranges are inclusive; amount bounds are nonnegative decimal strings. Sort fields are date, amount and description with ascending/descending direction and deterministic kind/ID tie breakers. Pages default to 20 records and are limited to 100. Search treats `%` and `_` literally. Transfers can be filtered by either endpoint and searched by description. Account history combines entries and transfers before filtering/pagination; category filters select only entries. Filters apply explicitly and reset the page; corrections refresh results without clearing the active filters.
 
-`GET /api/dashboard` accepts an optional `month=YYYY-MM`, defaulting to the current month in the user's timezone. It returns current total/account balances, selected-month income/expenses/net cash flow, and the latest 10 entries/transfers across all dates. Month selection affects only monthly totals. Archived accounts remain included; each transfer appears once in recent activity. The dashboard reuses centralized balance and activity queries and refreshes when reopened or explicitly refreshed.
+`GET /api/dashboard` accepts an optional `month=YYYY-MM`, defaulting to the current month in the user's timezone. It returns current total/account balances, selected-month income/expenses/net cash flow, and the latest 10 entries/transfers across all dates. Month selection affects monthly totals and category budget progress. Archived accounts remain included; each transfer appears once in recent activity. The dashboard reuses centralized balance and activity queries and refreshes when reopened or explicitly refreshed.
 
 Archiving an account prevents new activity and pauses its recurring rules. Preserve its history and allow corrections to existing records without moving them into another archived account. Unarchiving does not automatically resume recurring rules.
 
@@ -148,7 +148,11 @@ Archiving an account prevents new activity and pauses its recurring rules. Prese
 - After scheduler downtime, process missed due occurrences in bounded batches.
 - For monthly/yearly schedules, clamp invalid dates to the last day of the month while preserving the original anchor for later occurrences.
 - Editing a rule affects future occurrences only. Deleting a rule preserves generated transactions.
-- Proposed pause behavior: skip occurrences during a pause; resume at the next scheduled date on or after today.
+- Pause behavior: skip occurrences during a pause; resume at the next scheduled date on or after today. Unarchiving an account never resumes rules automatically.
+- A new rule with a past start date catches up from that date. Editing a rule discards overdue ungenerated dates and applies the new values from today onward. Changing frequency/start date establishes a new anchor. Already generated entries are never rewritten by rule edits.
+- The command processes at most 100 occurrences per run by default (configurable from 1 to 10000); successive runs continue the backlog. Completed rules have no next execution date and become inactive. End dates are inclusive.
+- A durable occurrence receipt and a unique transaction rule/scheduled-date pair protect retries. Receipts survive entry corrections/deletions; deleting a rule removes its receipts and clears generated entries' rule reference while preserving their scheduled date and financial history.
+- Each occurrence locks the owner, records the receipt, creates the entry and advances the rule in one database transaction. This shares the API write lock. SQLite uses IMMEDIATE transactions with a five-second busy timeout (PHP 8.4+); PostgreSQL uses owner row locks. The scheduler overlap lock is an additional guard, not the duplicate-prevention mechanism.
 
 ## Optional CSV support
 
@@ -217,7 +221,7 @@ The repository must document local setup, required environment variables, databa
 ## Guidance for future agents
 
 - Read [ROADMAP.md](ROADMAP.md), this brief, and the existing code before implementing changes.
-- Follow the scope tiers; do not add features simply because they might be useful.
+- Follow the current user-authorized scope recorded in ROADMAP.md; do not add features simply because they might be useful.
 - Keep financial calculations centralized and avoid duplicated financial state.
 - Prefer simple, maintainable solutions. Preserve working architecture unless a concrete problem justifies a change.
 - Test financial correctness and data isolation as part of implementation.

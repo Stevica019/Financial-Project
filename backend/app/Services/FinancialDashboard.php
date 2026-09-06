@@ -30,6 +30,7 @@ class FinancialDashboard
             'total_balance' => Money::decimal($total),
             'monthly' => ['income' => Money::decimal($income), 'expenses' => Money::decimal($expenses), 'net_cash_flow' => Money::decimal($income - $expenses)],
             'accounts' => $accounts,
+            'budgets' => BudgetProgress::forMonth($user, $month),
             'recent_activity' => ActivityBrowser::query($user->id)->orderByDesc('date')->orderByDesc('kind')->orderByDesc('id')->limit(10)->get()->map(function ($entry) {
                 $entry->amount = Money::decimal((int) $entry->amount);
 

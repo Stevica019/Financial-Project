@@ -10,6 +10,16 @@ class Category extends Model
 
     protected $hidden = ['name_key'];
 
+    public function recurringRules()
+    {
+        return $this->hasMany(RecurringRule::class);
+    }
+
+    public function budgets()
+    {
+        return $this->hasMany(Budget::class);
+    }
+
     public function transactions()
     {
         return $this->hasMany(Transaction::class);
