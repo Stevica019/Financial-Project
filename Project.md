@@ -52,6 +52,7 @@ These rules are the source of truth for backend calculations and tests.
 - Allow negative account balances; the app records activity and does not authorize actual payments.
 - Currency locks permanently when the first account is created, including accounts with a zero opening balance. Archiving or deleting accounts does not unlock it. Changing it afterward requires an explicit migration design.
 - Money input/output uses decimal strings with a dot and at most two fractional digits; storage uses integer minor units. Opening-balance input allows up to 12 whole-number digits. Never silently round extra precision.
+- Income/expense amounts use the same 12 whole-number digit limit. Each entry requires a description (up to 255 characters) and allows optional notes (up to 5000 characters).
 
 ### Dates and balances
 

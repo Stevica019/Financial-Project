@@ -9,4 +9,9 @@ class Category extends Model
     protected $fillable = ['name', 'name_key', 'type'];
 
     protected $hidden = ['name_key'];
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
 }

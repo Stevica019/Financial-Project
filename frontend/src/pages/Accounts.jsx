@@ -1,4 +1,5 @@
-import { Chip, Stack, Typography } from '@mui/material'
+import { Button, Chip, Stack, Typography } from '@mui/material'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 import { useRemote } from '../useRemote'
 import RemoteState from '../components/RemoteState'
@@ -20,10 +21,12 @@ export default function Accounts() {
     {remote.data && <ResourceManager title="Accounts" noun="account" endpoint="/accounts" fields={fields}
       defaults={{ name: '', type: 'checking', opening_balance: '0.00', opening_date: remote.data.today, description: '' }} archivable
       onSaved={() => updateUser({ currency_locked: true })}
-      introduction="Add the places where you keep money. Archive accounts you no longer use. Transaction history will follow when transaction tracking is available."
+      introduction="Add the places where you keep money. Balances include recorded income and expenses. Archive accounts you no longer use to preserve their history."
       details={account => <Stack spacing={1}>
         <Stack direction="row" spacing={1}><Chip label={typeName(account.type)} size="small" /><Chip label={account.is_active ? 'Active' : 'Archived'} size="small" variant="outlined" /></Stack>
         <Typography>Opening balance: {user.currency} {account.opening_balance}</Typography>
+        <Typography>Current balance: {user.currency} {account.balance}</Typography>
+        <Button component={Link} to={`/accounts/${account.id}/history`} sx={{ alignSelf: 'flex-start' }}>View history</Button>
         <Typography variant="body2" color="text.secondary">Opening date: {account.opening_date}</Typography>
         {account.description && <Typography sx={{ overflowWrap: 'anywhere' }}>{account.description}</Typography>}
       </Stack>}

@@ -59,9 +59,11 @@ Open the registration link to create your own local user. Passwords require at l
 
 After signing in, complete Settings to choose currency and timezone. Existing users are prompted too. All accounts share the selected currency; creating the first account locks that choice permanently. Timezone can still be changed. Supported currencies: EUR, RSD, USD, GBP, CHF, CAD, AUD.
 
-Accounts supports opening balances/dates, editing, archiving/unarchiving, and deletion. Categories includes editable defaults and custom income/expense categories. Account history and calculated balances will arrive with transactions. Owners can currently delete accounts/categories because activity tables do not exist yet; reference protection must ship alongside transactions.
+Accounts supports opening balances/dates, calculated current balances, editing, archiving/unarchiving, deletion of unused accounts, and View history. Categories includes editable defaults and custom income/expense categories. Referenced accounts/categories cannot be deleted, and categories used by entries cannot change type.
 
-For an existing checkout, run `composer install`, `php artisan migrate` in backend, and `npm.cmd ci` in frontend after pulling these changes. The settings/account/category migrations have already been applied on the original development machine. They preserve existing users and add their starter categories without choosing a currency for them.
+Transactions supports creating, editing and deleting income/expenses with positive decimal amounts, an owned account, a matching category, an activity date, a required description and optional notes. Dates must fall between the account opening date and today in your timezone. Balances immediately reflect corrections and deletions. Archived accounts retain their history and allow corrections, but cannot receive new activity. Lists currently show all entries newest first; search/filtering/pagination is the next milestone.
+
+For an existing checkout, run `composer install`, `php artisan migrate` in backend, and `npm.cmd ci` in frontend after pulling these changes. The settings/account/category and transactions migrations have already been applied on the original development machine. Existing users, categories and accounts are preserved.
 
 Authentication follows [Sanctum's SPA cookie flow](https://laravel.com/framework/docs/sanctum): fetch /sanctum/csrf-cookie, then POST /api/register or /api/login. POST /api/logout invalidates the session. Authentication endpoints use Laravel's web middleware for sessions and CSRF; other protected API routes use stateful Sanctum middleware. No authentication tokens are stored in browser storage.
 
@@ -88,6 +90,8 @@ npm.cmd run test:e2e
 Backend tests cover registration, password validation/hashing, duplicate emails, login failures, rate limits, session renewal/logout, and protected current-user access. Frontend tests cover forms, validation feedback, session restoration, logout failures, and recovery from unavailable or malformed responses. Generated Laravel example tests remain.
 
 Finance tests cover preferences/currency locking, exact money handling, user-local date validation, account lifecycle, cross-user access rejection, category uniqueness, and category seeding/backfill. Browser tests exercise settings persistence and account/category management at a mobile viewport. Component tests also check list retry and failed deletion recovery.
+
+Transaction tests cover exact balances through entry creation, amount/type/account changes and deletion, negative balances, ownership of entries and related resources, local date boundaries, archive rules and reference protection. The transaction browser test verifies creation, validation feedback, archived-account corrections, deletion, persistence and balances on a small screen.
 
 Browser tests use installed Microsoft Edge by default and require PHP on PATH (or PHP_BINARY set to its executable). They start separate servers on ports 8011 and 5174 and use a fresh temporary SQLite database, leaving development data untouched. CSRF remains enabled. The test database is left in the operating system's temporary folder for diagnosis; test reports are ignored by Git. To use installed Chrome instead, set PLAYWRIGHT_CHANNEL=chrome. Both test ports must be free.
 

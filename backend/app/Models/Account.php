@@ -8,6 +8,11 @@ class Account extends Model
 {
     protected $fillable = ['name', 'type', 'opening_balance', 'opening_date', 'description', 'is_active'];
 
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
     protected function casts(): array
     {
         return ['opening_balance' => 'integer', 'opening_date' => 'immutable_date', 'is_active' => 'boolean'];

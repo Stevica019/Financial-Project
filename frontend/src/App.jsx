@@ -7,6 +7,7 @@ import Settings from './pages/Settings'
 import Accounts from './pages/Accounts'
 import Categories from './pages/Categories'
 import Overview from './pages/Overview'
+import Transactions from './pages/Transactions'
 
 export default function App() {
   const { status, user, retry } = useAuth()
@@ -25,6 +26,8 @@ export default function App() {
         <Route path="/" element={configured ? <Overview /> : <Navigate to="/settings" replace />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/accounts" element={configured ? <Accounts /> : <Navigate to="/settings" replace />} />
+        <Route path="/accounts/:accountId/history" element={configured ? <Transactions /> : <Navigate to="/settings" replace />} />
+        <Route path="/transactions" element={configured ? <Transactions /> : <Navigate to="/settings" replace />} />
         <Route path="/categories" element={configured ? <Categories /> : <Navigate to="/settings" replace />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

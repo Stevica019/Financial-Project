@@ -32,8 +32,11 @@ class CategoryController extends Controller
 
     public function destroy(Request $request, string $category)
     {
-        // Add transaction/budget/recurrence reference guards when those entities exist.
-        $request->user()->categories()->findOrFail($category)->delete();
+        $category = $request->user()->categories()->findOrFail($category);
+        if ($category->transactions()->exists()) {
+            throw ValidationException::withMessages(['category' => 'This category is used by existing activity and cannot be deleted.']);
+        }
+        $category->delete();
 
         return response()->noContent();
     }
@@ -45,6 +48,9 @@ class CategoryController extends Controller
             'type' => ['required', Rule::in(['income', 'expense'])],
         ]);
         $data['name_key'] = mb_strtolower($data['name']);
+        if ($category && $category->type !== $data['type'] && $category->transactions()->exists()) {
+            throw ValidationException::withMessages(['type' => 'A category used by existing activity cannot change type.']);
+        }
         $duplicate = $request->user()->categories()->where('type', $data['type'])->where('name_key', $data['name_key']);
         if ($category) {
             $duplicate->whereKeyNot($category->id);

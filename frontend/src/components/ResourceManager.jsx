@@ -24,7 +24,7 @@ function Editor({ noun, fields, initialValues, onClose, onSave, editing }) {
       <DialogTitle id="editor-title">{editing ? 'Edit' : 'Create'} {noun}</DialogTitle>
       <DialogContent><Stack spacing={2.5} sx={{ pt: 1 }}>
         {error && <Alert severity="error">{error}</Alert>}
-        {fields.map(field => <FormField key={field.name} field={field} value={values[field.name]} error={errors[field.name]?.[0]} disabled={busy} onChange={value => setValues(current => ({ ...current, [field.name]: value }))} />)}
+        {(typeof fields === 'function' ? fields(values, initialValues) : fields).map(({ resetFields = [], ...field }) => <FormField key={field.name} field={field} value={values[field.name]} error={errors[field.name]?.[0]} disabled={busy} onChange={value => setValues(current => ({ ...current, ...Object.fromEntries(resetFields.map(name => [name, ''])), [field.name]: value }))} />)}
       </Stack></DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={busy}>Cancel</Button>
@@ -34,15 +34,15 @@ function Editor({ noun, fields, initialValues, onClose, onSave, editing }) {
   </Dialog>
 }
 
-export default function ResourceManager({ title, noun, endpoint, fields, defaults, details, archivable = false, onSaved, introduction }) {
+export default function ResourceManager({ title, noun, endpoint, writeEndpoint = endpoint, fields, defaults, details, archivable = false, onSaved, introduction }) {
   const remote = useRemote(endpoint)
   const [editor, setEditor] = useState(null)
   const [deleting, setDeleting] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   async function save(values) {
-    if (editor.id) await api.put(`${endpoint}/${editor.id}`, values)
-    else await api.post(endpoint, values)
+    if (editor.id) await api.put(`${writeEndpoint}/${editor.id}`, values)
+    else await api.post(writeEndpoint, values)
     onSaved?.()
     setEditor(null)
     remote.reload()
@@ -58,10 +58,14 @@ export default function ResourceManager({ title, noun, endpoint, fields, default
   async function remove() {
     setBusy(true); setError('')
     try {
-      await api.delete(`${endpoint}/${deleting.id}`)
+      await api.delete(`${writeEndpoint}/${deleting.id}`)
+      onSaved?.()
       setDeleting(null)
       remote.reload()
-    } catch (cause) { setError(requestError(cause)) }
+    } catch (cause) {
+      const messages = cause.response?.status === 422 ? Object.values(cause.response.data.errors ?? {}).flat().join(' ') : ''
+      setError(messages || requestError(cause))
+    }
     finally { setBusy(false) }
   }
   return <Stack spacing={3}>
@@ -74,9 +78,9 @@ export default function ResourceManager({ title, noun, endpoint, fields, default
     <RemoteState remote={remote}>
       {remote.data?.data.length === 0 && <Paper variant="outlined" sx={{ p: 3 }}><Typography>No {title.toLowerCase()} yet. Add your first {noun} to get started.</Typography></Paper>}
       <Stack spacing={2}>
-        {remote.data?.data.map(record => <Paper key={record.id} component="article" aria-label={record.name} variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+        {remote.data?.data.map(record => <Paper key={record.id} component="article" aria-label={record.name ?? record.description} variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
           <Stack spacing={2}>
-            <Typography component="h3" variant="h6" sx={{ overflowWrap: 'anywhere' }}>{record.name}</Typography>
+            <Typography component="h3" variant="h6" sx={{ overflowWrap: 'anywhere' }}>{record.name ?? record.description}</Typography>
             {details(record)}
             <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
               <Button disabled={busy} onClick={() => { setError(''); setEditor(record) }}>Edit</Button>
@@ -92,7 +96,7 @@ export default function ResourceManager({ title, noun, endpoint, fields, default
       <DialogTitle id="delete-title">Delete {noun}?</DialogTitle>
       <DialogContent>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-        <Typography>Delete "{deleting?.name}"? This cannot be undone.</Typography>
+        <Typography>Delete "{deleting?.name ?? deleting?.description}"? This cannot be undone.</Typography>
       </DialogContent>
       <DialogActions>
         <Button disabled={busy} onClick={() => { setDeleting(null); setError('') }}>Cancel</Button>

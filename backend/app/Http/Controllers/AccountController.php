@@ -43,15 +43,22 @@ class AccountController extends Controller
     public function update(Request $request, string $account)
     {
         $account = $request->user()->accounts()->findOrFail($account);
-        $account->update($this->validated($request, $request->user(), true));
+        $data = $this->validated($request, $request->user(), true);
+        if (isset($data['opening_date']) && $account->transactions()->where('date', '<', $data['opening_date'])->exists()) {
+            throw ValidationException::withMessages(['opening_date' => 'Opening date cannot be later than existing activity.']);
+        }
+        $account->update($data);
 
         return new AccountResource($account);
     }
 
     public function destroy(Request $request, string $account)
     {
-        // No activity tables exist yet. Add reference guards alongside those tables.
-        $request->user()->accounts()->findOrFail($account)->delete();
+        $account = $request->user()->accounts()->findOrFail($account);
+        if ($account->transactions()->exists()) {
+            throw ValidationException::withMessages(['account' => 'This account has activity. Archive it to preserve its history.']);
+        }
+        $account->delete();
 
         return response()->noContent();
     }

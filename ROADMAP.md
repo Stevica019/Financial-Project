@@ -6,11 +6,11 @@ Read this file first when resuming work, then [Project.md](Project.md) for requi
 
 ## Current handoff
 
-- Foundation and session authentication are implemented and committed. Latest implementation checkpoint: `9cc505e` (session authentication); foundation: `eefedcc`.
-- Implemented since that checkpoint (uncommitted): currency/timezone settings, account management, and user-owned categories with defaults for new/existing users. Local migrations are applied.
-- The overview remains a placeholder for financial summaries. Transactions and derived balances/history are not implemented.
-- Next milestone: income and expenses, including account/category reference guards and account history. No implementation is currently in progress and no known blocker remains.
-- Last verified on 2026-09-06: 23 backend tests, 10 frontend tests, 3 browser tests (including a small-screen finance workflow), frontend lint/build, and PHP formatting passed. The build reports a bundle-size warning; PostgreSQL is not yet verified.
+- Latest committed checkpoint: `76c657c` (settings, accounts, categories, and roadmap). Authentication: `9cc505e`; foundation: `eefedcc`.
+- Implemented since that checkpoint (uncommitted): income/expense creation, editing and deletion, derived account balances, account history, ownership/date/money validation, and reference guards. The local transactions migration is applied.
+- Archived accounts retain history and balances; existing entries can be corrected or moved to active accounts. New activity cannot target an archived account. Referenced accounts/categories cannot be deleted, referenced categories cannot change type, and opening dates cannot move past existing activity.
+- The overview remains a placeholder for financial summaries. Transaction lists/history currently return all entries newest first. Next milestone: backend transaction search, filters, sorting and pagination with frontend controls.
+- Last verified on 2026-09-06: 29 backend tests (329 assertions), 10 frontend tests, 4 browser tests (including the small-screen transaction lifecycle), frontend lint/build, and PHP formatting passed. The build reports the existing bundle-size warning; PostgreSQL is not yet verified.
 - Tooling change: ESLint 10 with React Hooks checks replaces Oxlint because Windows blocked Oxlint's native module. No Windows security policy was changed.
 
 ## Milestones
@@ -24,7 +24,7 @@ Complete each feature with its backend, usable UI, validation, ownership checks,
 - [x] **User settings:** persist currency/timezone, require an explicit currency choice, suggest a timezone, handle existing users, and permanently lock currency after the first account.
 - [x] **Account management:** create/edit/list/archive/unarchive/delete accounts, exact opening balance/date, validation, and owned-account access. Transaction-dependent functionality is tracked in the next milestone.
 - [x] **Category management:** user-owned defaults and custom income/expense categories; new-user seeding, existing-user backfill, editing/deletion, and case-insensitive duplicate protection within a type. Reference guards are tracked below.
-- [ ] **Income and expenses — next:** create/edit/delete entries, money/date validation, related-resource ownership, centralized balances, and account history. Prevent deleting referenced accounts/categories or changing categories to an incompatible type; prevent opening-date edits that invalidate existing activity and new activity on archived accounts.
+- [x] **Income and expenses:** create/edit/delete entries, money/date validation, related-resource ownership, centralized balances, and account history. Prevent deleting referenced accounts/categories or changing categories to an incompatible type; prevent opening-date edits that invalidate existing activity and new activity on archived accounts.
 - [ ] **Transaction browsing:** backend search, filters, sorting, pagination, and frontend controls.
 - [ ] **Transfers:** one logical transfer with create/edit/delete flows, both account histories, atomic writes where needed, and correct effects on balances.
 - [ ] **Financial dashboard:** actual account/total balances, monthly income/expenses/net cash flow, and recent activity. Replace the current placeholder.
@@ -49,15 +49,15 @@ Only pursue these after required work, with scope confirmed in Project.md.
 - Deferred beyond the initial project: currency conversion and bank integrations.
 - Optional follow-ups not yet implemented: password recovery and email verification.
 
-## Next session: income and expenses
+## Next session: transaction browsing
 
-1. Inspect account/category models and controllers, Money, the settings flow, and existing finance tests.
-2. Add user-owned income/expense records with foreign keys that preserve financial history. Keep transfers separate as described in Project.md.
-3. Enforce ownership, positive amounts, matching category types, opening-date boundaries, user-local dates, and archived-account restrictions.
-4. Add reference guards to account/category deletion and editing before exposing transactions. There are no activity tables yet, so current account/category deletion is unrestricted for the owner.
-5. Centralize derived account balances and build transaction entry/edit/delete plus account history. Never add a separately editable current balance.
-6. Add meaningful correctness/isolation tests and extend the browser workflow. Then proceed to backend search/filtering/sorting/pagination.
-7. Update this handoff with shipped behavior, verification results, and the next task.
+1. Inspect TransactionController, TransactionResource, AccountBalance, the Transactions screen, ResourceManager and transaction tests.
+2. Add backend search over description/notes, date/account/category/type/amount filters, allowlisted sorting, and bounded server-side pagination. Validate inputs and retain ownership scoping.
+3. Apply pagination consistently to account history; filtering must not alter the account's full current balance.
+4. Add frontend controls, result counts and page navigation, with loading/error/empty states and page reset when filters change.
+5. Test combined filters, exact amount boundaries, stable sorting/pagination, and isolation, then extend the browser workflow.
+6. Keep transfers and financial dashboard work in their separate milestones. Extend AccountBalance and reference guards when transfers ship.
+7. Update this handoff after verification. Leave the implementation for user review and commit.
 
 ## Time budget
 
