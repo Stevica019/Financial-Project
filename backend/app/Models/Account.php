@@ -13,6 +13,11 @@ class Account extends Model
         return $this->hasMany(Transaction::class);
     }
 
+    public function transfers()
+    {
+        return Transfer::query()->where(fn ($query) => $query->where('source_account_id', $this->id)->orWhere('destination_account_id', $this->id));
+    }
+
     protected function casts(): array
     {
         return ['opening_balance' => 'integer', 'opening_date' => 'immutable_date', 'is_active' => 'boolean'];

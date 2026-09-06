@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ActivityResource;
 use App\Http\Resources\TransactionResource;
 use App\Models\Transaction;
+use App\Services\ActivityBrowser;
 use App\Support\Money;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -13,14 +15,14 @@ class TransactionController extends Controller
 {
     public function index(Request $request)
     {
-        return TransactionResource::collection($request->user()->transactions()->with(['account', 'category'])->orderByDesc('date')->orderByDesc('id')->get());
+        return ActivityResource::collection(ActivityBrowser::page($request));
     }
 
     public function history(Request $request, string $account)
     {
         $account = $request->user()->accounts()->findOrFail($account);
 
-        return TransactionResource::collection($account->transactions()->with(['account', 'category'])->orderByDesc('date')->orderByDesc('id')->get());
+        return ActivityResource::collection(ActivityBrowser::page($request, 'history', $account->id));
     }
 
     public function show(Request $request, string $transaction)

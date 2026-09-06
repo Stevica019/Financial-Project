@@ -7,9 +7,12 @@ export function useRemote(path) {
   useEffect(() => {
     const controller = new AbortController()
     api.get(path, { signal: controller.signal }).then(({ data }) => {
-      if (!controller.signal.aborted) setState({ loading: false, data, error: '' })
+      if (!controller.signal.aborted) setState({ path, loading: false, data, error: '' })
     }).catch(error => {
-      if (!controller.signal.aborted) setState({ loading: false, data: null, error: requestError(error) })
+      if (!controller.signal.aborted) {
+        const messages = error.response?.status === 422 ? Object.values(error.response.data.errors ?? {}).flat().join(' ') : ''
+        setState({ path, loading: false, data: null, error: messages || requestError(error) })
+      }
     })
     return () => controller.abort()
   }, [path, attempt])
@@ -18,5 +21,6 @@ export function useRemote(path) {
     setState({ loading: true, data: null, error: '' })
     setAttempt(value => value + 1)
   }
-  return { ...state, reload }
+  function refresh() { setAttempt(value => value + 1) }
+  return { ...(state.path === path ? state : { loading: true, data: null, error: '' }), reload, refresh }
 }

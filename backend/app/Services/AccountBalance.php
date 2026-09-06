@@ -12,6 +12,10 @@ class AccountBalance
             ->selectRaw("COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE -amount END), 0) AS net")
             ->value('net');
 
-        return $account->opening_balance + (int) $net;
+        $transfers = $account->transfers()
+            ->selectRaw('COALESCE(SUM(CASE WHEN destination_account_id = ? THEN amount ELSE -amount END), 0) AS net', [$account->id])
+            ->value('net');
+
+        return $account->opening_balance + (int) $net + (int) $transfers;
     }
 }

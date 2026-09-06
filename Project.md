@@ -76,13 +76,14 @@ monthly net cash flow = monthly income - monthly expenses
 
 ### Transfers
 
-Proposed default: use a separate transfers table. Transactions represent only income or expenses.
+Transfers use a separate table. Transactions represent only income or expenses.
 
 - One transfer record contains the source account, destination account, amount, and date.
 - Both accounts must belong to the current user and must be different.
 - Reflect each transfer in both account histories, but only once in a combined activity list.
 - Creating, editing, or deleting a transfer must update its financial effect as one atomic operation. Use database transactions whenever an operation writes multiple related records.
 - Transfers change individual account balances but leave total balance and net cash flow unchanged.
+- Transfer amounts use the same 12 whole-number digit limit as entries; descriptions are optional and limited to 255 characters. During edits, an archived account may remain in its existing source/destination role; a changed endpoint must be active.
 
 ### Budgets and goals
 
@@ -129,6 +130,8 @@ Use foreign keys, appropriate uniqueness constraints, and indexes based on actua
 | Reports | Select month; show income, expenses, net cash flow, spending by category, and comparison with the previous month. |
 
 Keep charts limited to useful summaries. Every asynchronous screen needs loading, empty, validation, and error states. Forms and navigation should be usable on smaller screens and with a keyboard.
+
+Browsing APIs use `search`, `account_id`, `category_id`, `type`, `date_from`, `date_to`, `amount_min`, `amount_max`, `sort`, `direction`, `page`, and `per_page`. Date/amount ranges are inclusive; amount bounds are nonnegative decimal strings. Sort fields are date, amount and description with ascending/descending direction and deterministic kind/ID tie breakers. Pages default to 20 records and are limited to 100. Search treats `%` and `_` literally. Transfers can be filtered by either endpoint and searched by description. Account history combines entries and transfers before filtering/pagination; category filters select only entries. Filters apply explicitly and reset the page; corrections refresh results without clearing the active filters.
 
 Archiving an account prevents new activity and pauses its recurring rules. Preserve its history and allow corrections to existing records without moving them into another archived account. Unarchiving does not automatically resume recurring rules.
 
