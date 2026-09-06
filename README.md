@@ -59,6 +59,8 @@ Open the registration link to create your own local user. Passwords require at l
 
 After signing in, complete Settings to choose currency and timezone. Existing users are prompted too. All accounts share the selected currency; creating the first account locks that choice permanently. Timezone can still be changed. Supported currencies: EUR, RSD, USD, GBP, CHF, CAD, AUD.
 
+Overview shows current total and per-account balances (including archived accounts), monthly income/expenses/net cash flow, and the latest 10 entries/transfers across all dates. Choose Summary month to change the monthly figures; its default is the current month in your timezone. Opening balances and transfers do not count as income or expenses. Current balances and recent activity are independent of the selected month. Returning to Overview or using Refresh reloads the financial data. The dashboard requires no additional migrations.
+
 Accounts supports opening balances/dates, calculated current balances, editing, archiving/unarchiving, deletion of unused accounts, and View history. Categories includes editable defaults and custom income/expense categories. Referenced accounts/categories cannot be deleted, and categories used by entries cannot change type.
 
 Transactions supports creating, editing and deleting income/expenses with positive decimal amounts, an owned account, a matching category, an activity date, a required description and optional notes. Dates must fall between the account opening date and today in your timezone. Balances immediately reflect corrections and deletions. Archived accounts retain their history and allow corrections, but cannot receive new activity.
@@ -99,7 +101,11 @@ Transaction tests cover exact balances through entry creation, amount/type/accou
 
 Browsing/transfer tests cover combined filters, literal wildcard search, inclusive dates and amounts, stable pagination, mixed history with overlapping transaction/transfer IDs, total-balance preservation, changing either transfer endpoint, archive/reference guards, and cross-user rejection. Browser tests cover filter controls and error recovery, deleting the last row on a page, preserved filters after editing, and the transfer lifecycle from both account histories.
 
+Dashboard tests cover exact totals, archived accounts, month/year/leap-day boundaries, timezone defaults, ownership, bounded recent activity, and effects of edits/deletions. Frontend checks cover loading and retry behavior and month selection. The mobile browser workflow verifies summaries, transfer display, history navigation and refreshed corrections.
+
 Browser tests use installed Microsoft Edge by default and require PHP on PATH (or PHP_BINARY set to its executable). They start separate servers on ports 8011 and 5174 and use a fresh temporary SQLite database, leaving development data untouched. CSRF remains enabled. The test database is left in the operating system's temporary folder for diagnosis; test reports are ignored by Git. To use installed Chrome instead, set PLAYWRIGHT_CHANNEL=chrome. Both test ports must be free.
+
+`npm.cmd run test:e2e` runs each browser test file with fresh servers/database/cache to isolate registration rate limits. Authentication rate-limit behavior remains covered by backend tests. For a single workflow, use `npx.cmd playwright test e2e/dashboard.spec.js`. The default Playwright output folder is replaced for each file; inspect a workflow's artifacts by running that file on its own.
 
 ## Structure and next work
 

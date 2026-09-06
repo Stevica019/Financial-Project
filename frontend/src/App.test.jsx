@@ -6,6 +6,9 @@ import { api, authenticate } from './api'
 import { AuthProvider } from './auth/AuthContext'
 import App from './App'
 
+// Authentication tests isolate the dashboard's independent data requests.
+vi.mock('./pages/Overview', () => ({ default: () => <h2>Financial overview</h2> }))
+
 vi.mock('./api', async importOriginal => ({
   ...await importOriginal(),
   api: {

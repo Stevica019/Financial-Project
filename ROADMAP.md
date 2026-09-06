@@ -6,11 +6,12 @@ Read this file first when resuming work, then [Project.md](Project.md) for requi
 
 ## Current handoff
 
-- Latest committed checkpoint: `d612952` (income/expenses, balances and history). Earlier foundation milestones are recorded in Git.
-- Implemented since that checkpoint (uncommitted): transaction search, filters, stable sorting and pagination; transfer creation/editing/deletion; combined account history with transfer direction; transfer-aware balances and account reference guards. The local transfers migration is applied.
-- Archived accounts retain history and balances. Existing transfer endpoints can remain archived during corrections; changing an endpoint requires an active owned account. Both endpoint opening dates are enforced. Financial writes use the existing per-owner transaction lock and each transfer is one record.
-- The overview remains a placeholder for financial summaries. Next milestone: financial dashboard with account/total balances, monthly income/expenses/net cash flow, and recent activity.
-- Last verified on 2026-09-06: 38 backend tests (496 assertions), 10 frontend tests, 6 browser tests, frontend lint/build, and PHP formatting passed. Browser coverage includes combined filters, paging, final-page deletion, filter error recovery, preserved filters after edits, and transfer corrections from archived-account history. The build reports the existing bundle-size warning; PostgreSQL is not yet verified.
+- Latest committed checkpoint: `75a631f` (transaction browsing and transfers). Earlier foundation milestones are recorded in Git.
+- Implemented since that checkpoint (uncommitted): financial dashboard API and Overview page with current account/total balances, month selection, monthly income/expenses/net cash flow, and latest 10 entries/transfers. No new migration is required.
+- Balances include archived accounts and all dates. Monthly summaries exclude transfers and opening balances. The default month uses the user's timezone; recent activity covers all dates and shows each transfer once. Dashboard reads share the financial writers' per-owner lock for a consistent summary.
+- Next milestone: MVP release verification, PostgreSQL checks, production configuration/deployment and demo. Required MVP feature milestones are implemented; the release milestone remains open.
+- Last verified on 2026-09-06: 43 backend tests (567 assertions), 12 frontend tests, 7 browser tests, frontend lint/build, and PHP formatting passed. Dashboard coverage includes leap/year/month boundaries, timezone defaults, ownership, archived balances, exact arithmetic, corrections/deletions, month selection, error recovery and mobile layout. The existing bundle-size warning remains; PostgreSQL is not yet verified.
+- Browser test files now run with separate backends/databases so unrelated registration workflows do not share rate-limit quotas. Production rate limits are unchanged.
 - Tooling change: ESLint 10 with React Hooks checks replaces Oxlint because Windows blocked Oxlint's native module. No Windows security policy was changed.
 
 ## Milestones
@@ -27,7 +28,7 @@ Complete each feature with its backend, usable UI, validation, ownership checks,
 - [x] **Income and expenses:** create/edit/delete entries, money/date validation, related-resource ownership, centralized balances, and account history. Prevent deleting referenced accounts/categories or changing categories to an incompatible type; prevent opening-date edits that invalidate existing activity and new activity on archived accounts.
 - [x] **Transaction browsing:** backend search, filters, sorting, pagination, and frontend controls.
 - [x] **Transfers:** one logical transfer with create/edit/delete flows, both account histories, atomic writes where needed, and correct effects on balances.
-- [ ] **Financial dashboard:** actual account/total balances, monthly income/expenses/net cash flow, and recent activity. Replace the current placeholder.
+- [x] **Financial dashboard:** actual account/total balances, monthly income/expenses/net cash flow, and recent activity. Replaces the placeholder.
 - [ ] **MVP release:** PostgreSQL migration/behavior checks, full financial-flow verification, responsive/keyboard review, production configuration/deployment, setup notes, and demo.
 
 ### Extended version
@@ -49,15 +50,14 @@ Only pursue these after required work, with scope confirmed in Project.md.
 - Deferred beyond the initial project: currency conversion and bank integrations.
 - Optional follow-ups not yet implemented: password recovery and email verification.
 
-## Next session: financial dashboard
+## Next session: MVP release
 
-1. Inspect AccountBalance, ActivityBrowser, account resources, Overview and the financial tests.
-2. Add user-owned dashboard data: actual account balances and total balance including archived accounts, selected-month income and expenses, and net cash flow.
-3. Use the user's timezone for the default month and calendar boundaries. Exclude opening balances and transfers from income/expense totals.
-4. Add a bounded recent-activity list that includes transfers once. Reuse the combined-history query where appropriate.
-5. Replace Overview with usable summaries and month controls, including loading, empty and error states. Keep financial calculations centralized.
-6. Test month boundaries, archived accounts, ownership, and immediate effects of edits/deletions; extend the browser workflow.
-7. Update this handoff after verification. Leave the implementation for user review and commit. PostgreSQL verification and deployment belong to the following MVP release milestone.
+1. Inspect the release checklist in Project.md, current environment and deployment requirements in README.md.
+2. Configure an isolated PostgreSQL database and PHP driver; verify migrations, financial behavior, filtering/history queries and concurrent financial writes without touching local financial data.
+3. Review the complete financial workflow, keyboard access and responsive layouts, and address any remaining issues. Review query performance and the existing bundle-size warning for production readiness.
+4. Prepare production hosting, API routing, secrets, cookie/session settings and deployment instructions. Confirm the deployment destination with the user when needed.
+5. Verify deployed registration/login/logout, CSRF, ownership isolation and financial flows; complete setup documentation and demo.
+6. Mark MVP release complete only after those checks and deployment are actually done. Keep extended features in their separate tier.
 
 ## Time budget
 

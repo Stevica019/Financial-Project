@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Support\Money;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -41,19 +42,7 @@ class ActivityBrowser
         if (isset($filters['date_from'], $filters['date_to']) && $filters['date_from'] > $filters['date_to']) {
             throw ValidationException::withMessages(['date_to' => 'End date must be on or after the start date.']);
         }
-        // SQLite retains the time written by Eloquent date casts; expose calendar dates on both databases.
-        $transactions = DB::table('transactions as t')->join('accounts as a', 'a.id', '=', 't.account_id')->join('categories as c', 'c.id', '=', 't.category_id')
-            ->where('t.user_id', $request->user()->id)
-            ->selectRaw("t.id, 'transaction' as kind, t.type, t.amount, SUBSTR(CAST(t.date AS VARCHAR), 1, 10) as date, t.description, t.notes, t.account_id, a.name as account_name, t.category_id, c.name as category_name, CAST(NULL AS BIGINT) as source_account_id, CAST(NULL AS BIGINT) as destination_account_id, NULL as source_account_name, NULL as destination_account_name");
-        $transfers = DB::table('transfers as t')->join('accounts as s', 's.id', '=', 't.source_account_id')->join('accounts as d', 'd.id', '=', 't.destination_account_id')
-            ->where('t.user_id', $request->user()->id)
-            ->selectRaw("t.id, 'transfer' as kind, 'transfer' as type, t.amount, SUBSTR(CAST(t.date AS VARCHAR), 1, 10) as date, t.description, NULL as notes, CAST(NULL AS BIGINT) as account_id, NULL as account_name, CAST(NULL AS BIGINT) as category_id, NULL as category_name, t.source_account_id, t.destination_account_id, s.name as source_account_name, d.name as destination_account_name");
-        $base = match ($scope) {
-            'transfers' => $transfers,
-            'history' => $transactions->unionAll($transfers),
-            default => $transactions,
-        };
-        $query = DB::query()->fromSub($base, 'activity');
+        $query = self::query($request->user()->id, $scope);
         foreach (array_filter([$accountId, $filters['account_id'] ?? null]) as $id) {
             $query->where(fn ($q) => $q->where('account_id', $id)->orWhere('source_account_id', $id)->orWhere('destination_account_id', $id));
         }
@@ -76,5 +65,23 @@ class ActivityBrowser
 
         return $query->orderBy($filters['sort'] ?? 'date', $direction)->orderBy('kind', $direction)->orderBy('id', $direction)
             ->paginate($filters['per_page'] ?? 20)->withQueryString();
+    }
+
+    public static function query(int $userId, string $scope = 'history'): Builder
+    {
+        // SQLite retains the time written by Eloquent date casts; expose calendar dates on both databases.
+        $transactions = DB::table('transactions as t')->join('accounts as a', 'a.id', '=', 't.account_id')->join('categories as c', 'c.id', '=', 't.category_id')
+            ->where('t.user_id', $userId)
+            ->selectRaw("t.id, 'transaction' as kind, t.type, t.amount, SUBSTR(CAST(t.date AS VARCHAR), 1, 10) as date, t.description, t.notes, t.account_id, a.name as account_name, t.category_id, c.name as category_name, CAST(NULL AS BIGINT) as source_account_id, CAST(NULL AS BIGINT) as destination_account_id, NULL as source_account_name, NULL as destination_account_name");
+        $transfers = DB::table('transfers as t')->join('accounts as s', 's.id', '=', 't.source_account_id')->join('accounts as d', 'd.id', '=', 't.destination_account_id')
+            ->where('t.user_id', $userId)
+            ->selectRaw("t.id, 'transfer' as kind, 'transfer' as type, t.amount, SUBSTR(CAST(t.date AS VARCHAR), 1, 10) as date, t.description, NULL as notes, CAST(NULL AS BIGINT) as account_id, NULL as account_name, CAST(NULL AS BIGINT) as category_id, NULL as category_name, t.source_account_id, t.destination_account_id, s.name as source_account_name, d.name as destination_account_name");
+        $base = match ($scope) {
+            'transfers' => $transfers,
+            'history' => $transactions->unionAll($transfers),
+            default => $transactions,
+        };
+
+        return DB::query()->fromSub($base, 'activity');
     }
 }

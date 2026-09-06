@@ -133,6 +133,8 @@ Keep charts limited to useful summaries. Every asynchronous screen needs loading
 
 Browsing APIs use `search`, `account_id`, `category_id`, `type`, `date_from`, `date_to`, `amount_min`, `amount_max`, `sort`, `direction`, `page`, and `per_page`. Date/amount ranges are inclusive; amount bounds are nonnegative decimal strings. Sort fields are date, amount and description with ascending/descending direction and deterministic kind/ID tie breakers. Pages default to 20 records and are limited to 100. Search treats `%` and `_` literally. Transfers can be filtered by either endpoint and searched by description. Account history combines entries and transfers before filtering/pagination; category filters select only entries. Filters apply explicitly and reset the page; corrections refresh results without clearing the active filters.
 
+`GET /api/dashboard` accepts an optional `month=YYYY-MM`, defaulting to the current month in the user's timezone. It returns current total/account balances, selected-month income/expenses/net cash flow, and the latest 10 entries/transfers across all dates. Month selection affects only monthly totals. Archived accounts remain included; each transfer appears once in recent activity. The dashboard reuses centralized balance and activity queries and refreshes when reopened or explicitly refreshed.
+
 Archiving an account prevents new activity and pauses its recurring rules. Preserve its history and allow corrections to existing records without moving them into another archived account. Unarchiving does not automatically resume recurring rules.
 
 ## Recurring transactions: extended version
