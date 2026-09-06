@@ -7,7 +7,7 @@ Build a personal finance app for daily use: record financial activity, see accou
 This is also a full-stack project with authentication, backend validation, relational data, automated tests, and deployment.
 
 - Planning budget: 25 days at roughly 4 hours per day (100 hours). This is a target, not a delivery guarantee.
-- Current state: Laravel 13/Sanctum backend and React/Vite/MUI frontend with SQLite, registration, login/logout, protected workspace, and session restoration. Backend, frontend, and browser authentication tests are in place. Financial features and user currency/timezone settings are next. See README.md for setup.
+- Progress, verification results, and the next task are tracked in [ROADMAP.md](ROADMAP.md). See [README.md](README.md) for setup.
 - Each registered user manages their own finances. Shared accounts and households are outside the initial scope.
 - This document is the project brief. Keep it updated when scope or architecture decisions change.
 - The React/REST/Laravel stack and cookie authentication below are implemented. Financial design rules remain the implementation brief for the next stages.
@@ -46,10 +46,12 @@ These rules are the source of truth for backend calculations and tests.
 ### Money and currency
 
 - Start with one currency per user, shared by all their accounts. Do not perform currency conversion.
+- Initial supported currencies: EUR, RSD, USD, GBP, CHF, CAD, AUD (two decimal places each). Users explicitly choose currency; a browser timezone is only a suggestion to confirm. Existing users complete settings before creating accounts.
 - Store monetary values as integer minor units and convert only at input/display boundaries. Do not use floating-point arithmetic for money.
 - Income, expense, transfer, and budget amounts must be positive. Opening balances may be zero or negative.
 - Allow negative account balances; the app records activity and does not authorize actual payments.
-- Do not allow changing a user's currency after financial records exist without an explicit migration design.
+- Currency locks permanently when the first account is created, including accounts with a zero opening balance. Archiving or deleting accounts does not unlock it. Changing it afterward requires an explicit migration design.
+- Money input/output uses decimal strings with a dot and at most two fractional digits; storage uses integer minor units. Opening-balance input allows up to 12 whole-number digits. Never silently round extra precision.
 
 ### Dates and balances
 
@@ -95,7 +97,7 @@ This is a logical schema, not a complete migration specification. Entities have 
 
 | Entity | Main fields and constraints |
 | --- | --- |
-| User | name, unique email, hashed password, currency, timezone |
+| User | name, unique email, hashed password, initially nullable currency/timezone, currency_locked |
 | Account | user_id, name, type, opening_balance, opening_date, optional description, is_active |
 | Category | user_id, name, type: income or expense; optional icon |
 | Transaction | user_id, account_id, category_id, type: income or expense, amount, date, description, optional notes; optional recurring rule and scheduled occurrence date |
@@ -106,7 +108,7 @@ This is a logical schema, not a complete migration specification. Entities have 
 
 Account types may include cash, checking, savings, credit, digital wallet, and other. Credit accounts use signed balances; debt is negative. Credit limits, statements, and investment valuation are outside the initial scope.
 
-Seed a small set of user-owned income and expense categories at registration. Users can manage their own categories.
+Seed a small set of user-owned income and expense categories at registration. The existing-user migration also adds these defaults. Users can rename/delete them; they are not automatically re-created on login. Category names are unique per user and type ignoring case, enforced using a normalized name_key column and a database constraint. Icons are not implemented.
 
 Use foreign keys, appropriate uniqueness constraints, and indexes based on actual query patterns. Validate ownership of related IDs as well as ownership of the main resource.
 
@@ -191,18 +193,6 @@ Frontend priorities:
 
 Before release, verify production database migrations, the production build, deployed authentication, and an end-to-end flow from account creation through transfers and dashboard totals.
 
-## Roadmap: approximately 100 hours
-
-The time boxes are planning guides. Maintain a working integrated app throughout.
-
-| Days | Focus |
-| --- | --- |
-| 1-5 | Confirm architecture, initialize repository and environment, schema, authentication, base frontend, accounts/categories foundations |
-| 6-10 | Complete accounts/categories and income/expense workflows; search, filtering, sorting, pagination; tests alongside implementation |
-| 11-15 | Transfers, financial calculations, dashboard, integration checks; begin budgets if MVP is stable |
-| 16-20 | Extended features in order: budgets, recurring transactions, savings goals, monthly reports |
-| 21-25 | Fix issues, complete verification, deploy, write setup/architecture notes, prepare demo; optional CSV only if time remains |
-
 ## Completion criteria
 
 MVP is complete when a user can:
@@ -220,10 +210,10 @@ The repository must document local setup, required environment variables, databa
 
 ## Guidance for future agents
 
-- Read this brief and inspect the existing code before implementing changes.
+- Read [ROADMAP.md](ROADMAP.md), this brief, and the existing code before implementing changes.
 - Follow the scope tiers; do not add features simply because they might be useful.
 - Keep financial calculations centralized and avoid duplicated financial state.
 - Prefer simple, maintainable solutions. Preserve working architecture unless a concrete problem justifies a change.
 - Test financial correctness and data isolation as part of implementation.
 - Resolve routine details with reasonable defaults; surface decisions that materially change scope or financial behavior.
-- Record confirmed architecture decisions and actual progress here concisely. Do not treat the roadmap as evidence that work is complete.
+- Record confirmed architecture decisions here and actual progress/verification in ROADMAP.md. Update README.md when setup or test commands change. Verify completion against code and checks, not the planned schedule.

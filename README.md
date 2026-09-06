@@ -1,8 +1,6 @@
 # Personal Finance
 
-Laravel API and React frontend for personal finance. See [Project.md](Project.md) for scope and financial rules.
-
-Implemented: registration, login/logout, cookie-based session restoration, protected workspace, backend validation and authentication rate limits, SQLite migrations, and API health checks. Financial features are not implemented yet.
+Laravel API and React frontend for personal finance. See [Project.md](Project.md) for scope and financial rules, and [ROADMAP.md](ROADMAP.md) for completed work and the next milestone.
 
 ## Environment
 
@@ -13,6 +11,7 @@ Verified on this Windows machine:
 - Node.js 24.19.0 and npm 11.17.0.
 - Git 2.53.0.
 - Laravel 13, Sanctum 4, React 19, MUI 9, Vite 8. Exact installed versions are in lockfiles.
+- ESLint 10 and React Hooks rules provide frontend linting. This replaces Oxlint, whose native module was blocked by Windows application control.
 
 PHP meets dependency requirements, but update its patch release before production use. PostgreSQL and its PHP driver have not been configured or verified.
 
@@ -58,6 +57,12 @@ Open http://127.0.0.1:5173. Vite proxies /api and /sanctum to Laravel on port 80
 
 Open the registration link to create your own local user. Passwords require at least 12 characters and at most 72 UTF-8 bytes. Email addresses are normalized to lowercase. Password recovery and email verification are not implemented yet.
 
+After signing in, complete Settings to choose currency and timezone. Existing users are prompted too. All accounts share the selected currency; creating the first account locks that choice permanently. Timezone can still be changed. Supported currencies: EUR, RSD, USD, GBP, CHF, CAD, AUD.
+
+Accounts supports opening balances/dates, editing, archiving/unarchiving, and deletion. Categories includes editable defaults and custom income/expense categories. Account history and calculated balances will arrive with transactions. Owners can currently delete accounts/categories because activity tables do not exist yet; reference protection must ship alongside transactions.
+
+For an existing checkout, run `composer install`, `php artisan migrate` in backend, and `npm.cmd ci` in frontend after pulling these changes. The settings/account/category migrations have already been applied on the original development machine. They preserve existing users and add their starter categories without choosing a currency for them.
+
 Authentication follows [Sanctum's SPA cookie flow](https://laravel.com/framework/docs/sanctum): fetch /sanctum/csrf-cookie, then POST /api/register or /api/login. POST /api/logout invalidates the session. Authentication endpoints use Laravel's web middleware for sessions and CSRF; other protected API routes use stateful Sanctum middleware. No authentication tokens are stored in browser storage.
 
 Local frontend hosts on port 5173 are included in config/sanctum.php. If you change the frontend origin, set SANCTUM_STATEFUL_DOMAINS in backend/.env to the exact host and port. No frontend environment variables are required for normal development. API_PROXY_TARGET is an optional Vite server setting used by isolated browser tests.
@@ -82,14 +87,17 @@ npm.cmd run test:e2e
 
 Backend tests cover registration, password validation/hashing, duplicate emails, login failures, rate limits, session renewal/logout, and protected current-user access. Frontend tests cover forms, validation feedback, session restoration, logout failures, and recovery from unavailable or malformed responses. Generated Laravel example tests remain.
 
+Finance tests cover preferences/currency locking, exact money handling, user-local date validation, account lifecycle, cross-user access rejection, category uniqueness, and category seeding/backfill. Browser tests exercise settings persistence and account/category management at a mobile viewport. Component tests also check list retry and failed deletion recovery.
+
 Browser tests use installed Microsoft Edge by default and require PHP on PATH (or PHP_BINARY set to its executable). They start separate servers on ports 8011 and 5174 and use a fresh temporary SQLite database, leaving development data untouched. CSRF remains enabled. The test database is left in the operating system's temporary folder for diagnosis; test reports are ignored by Git. To use installed Chrome instead, set PLAYWRIGHT_CHANNEL=chrome. Both test ports must be free.
 
 ## Structure and next work
 
 - backend/: Laravel REST API, database migrations, PHPUnit tests.
 - frontend/: React/JavaScript, MUI, Axios, React Router, Vite.
-- Project.md: requirements, priorities, roadmap.
+- Project.md: requirements, financial rules, and architecture.
+- ROADMAP.md: milestone checklist, current handoff, and verification status.
 
-Next: user currency/timezone settings, accounts, categories (including registration defaults), and ownership tests. The signed-in workspace is an empty state until financial features are built. Commit each verified milestone separately; commits are not created automatically.
+Follow the next task in [ROADMAP.md](ROADMAP.md). Commit each verified milestone separately; commits are not created automatically.
 
 Production deployment is not configured. It needs PostgreSQL verification, production secrets and cookie settings, frontend hosting with API routing, and a deployment smoke test. The Vite development proxy is not a production reverse proxy.

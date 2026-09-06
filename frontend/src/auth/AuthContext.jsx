@@ -50,5 +50,9 @@ export function AuthProvider({ children }) {
     setAttempt(value => value + 1)
   }
 
-  return <AuthContext.Provider value={{ ...session, submit, logout, retry }}>{children}</AuthContext.Provider>
+  function updateUser(changes) {
+    setSession(current => current.status === 'authenticated' ? { ...current, user: { ...current.user, ...changes } } : current)
+  }
+
+  return <AuthContext.Provider value={{ ...session, submit, logout, retry, updateUser }}>{children}</AuthContext.Provider>
 }

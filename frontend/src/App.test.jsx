@@ -15,7 +15,7 @@ vi.mock('./api', async importOriginal => ({
   authenticate: vi.fn(),
 }))
 
-const user = { id: 1, name: 'Alex', email: 'alex@example.com' }
+const user = { id: 1, name: 'Alex', email: 'alex@example.com', currency: 'EUR', timezone: 'UTC', currency_locked: false }
 
 beforeEach(() => {
   api.get.mockReset().mockRejectedValue({ response: { status: 401 } })

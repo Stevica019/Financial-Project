@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Alert, Box, Button, Paper, Stack, Typography } from '@mui/material'
+import { Alert, Box, Button, Stack, Typography } from '@mui/material'
+import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from './auth/useAuth'
 import { requestError } from './api'
 
@@ -24,9 +25,10 @@ export default function Dashboard() {
       <Button variant="outlined" onClick={handleLogout} disabled={busy}>{busy ? 'Signing out…' : 'Sign out'}</Button>
     </Stack>
     {error && <Alert severity="error">{error}</Alert>}
-    <Paper variant="outlined" sx={{ p: 4, borderRadius: 3 }}>
-      <Typography variant="h6" component="h2" gutterBottom>Your workspace is ready</Typography>
-      <Typography color="text.secondary">Account tracking and transactions are coming next. Your financial overview will appear here as those features become available.</Typography>
-    </Paper>
+    <Stack component="nav" aria-label="Workspace" direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
+      {[['/', 'Overview'], ['/accounts', 'Accounts'], ['/categories', 'Categories'], ['/settings', 'Settings']].map(([to, label]) =>
+        <Button key={to} component={NavLink} to={to} end sx={{ '&.active': { bgcolor: 'action.selected' } }}>{label}</Button>)}
+    </Stack>
+    <Outlet />
   </Stack>
 }
