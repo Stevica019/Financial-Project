@@ -4,19 +4,14 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Support\Money;
-use Carbon\CarbonImmutable;
 
 class FinancialDashboard
 {
     public static function summary(User $user, string $month): array
     {
-        $start = CarbonImmutable::createFromFormat('!Y-m', $month, $user->timezone ?? 'UTC');
-        $monthly = $user->transactions()->where('date', '>=', $start->toDateString())
-            ->where('date', '<', $start->addMonth()->toDateString())
-            ->selectRaw("COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income, COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS expenses")
-            ->first();
-        $income = (int) $monthly->income;
-        $expenses = (int) $monthly->expenses;
+        $monthly = MonthlyReport::totals($user, $month);
+        $income = $monthly['income'];
+        $expenses = $monthly['expenses'];
         $total = 0;
         $accounts = $user->accounts()->orderByDesc('is_active')->orderBy('name')->orderBy('id')->get()->map(function ($account) use (&$total) {
             $balance = AccountBalance::minor($account);
@@ -31,6 +26,7 @@ class FinancialDashboard
             'monthly' => ['income' => Money::decimal($income), 'expenses' => Money::decimal($expenses), 'net_cash_flow' => Money::decimal($income - $expenses)],
             'accounts' => $accounts,
             'budgets' => BudgetProgress::forMonth($user, $month),
+            'goals' => $user->savingsGoals()->where('status', 'active')->orderByDesc('id')->get()->map->summary(),
             'recent_activity' => ActivityBrowser::query($user->id)->orderByDesc('date')->orderByDesc('kind')->orderByDesc('id')->limit(10)->get()->map(function ($entry) {
                 $entry->amount = Money::decimal((int) $entry->amount);
 

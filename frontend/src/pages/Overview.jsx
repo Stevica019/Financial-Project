@@ -5,6 +5,7 @@ import { useRemote } from '../useRemote'
 import RemoteState from '../components/RemoteState'
 import TransferDetails from '../components/TransferDetails'
 import BudgetProgress from '../components/BudgetProgress'
+import GoalProgress from '../components/GoalProgress'
 
 function SummaryCard({ label, amount, currency }) {
   return <Paper component="section" aria-label={label} variant="outlined" sx={{ p: 3, flexGrow: 1, minWidth: 0, borderRadius: 3 }}>
@@ -50,6 +51,16 @@ export default function Overview() {
             <BudgetProgress budget={budget} currency={data.currency} />
           </Paper>)}
           <Button component={Link} to="/budgets">Manage budgets</Button>
+        </Stack>
+        <Stack component="section" aria-label="Active savings goals" spacing={2}>
+          <Typography component="h3" variant="h6">Active savings goals</Typography>
+          <Typography color="text.secondary">Manually tracked progress across all dates. Goals do not reserve money or affect balances.</Typography>
+          {!data.goals?.length && <Typography>No active savings goals.</Typography>}
+          {data.goals?.map(goal => <Paper key={goal.id} variant="outlined" sx={{ p: 2 }}>
+            <Typography component="h4" sx={{ overflowWrap: 'anywhere' }}>{goal.name}</Typography>
+            <GoalProgress goal={goal} currency={data.currency} />
+          </Paper>)}
+          <Button component={Link} to="/goals">Manage savings goals</Button>
         </Stack>
         <Stack component="section" aria-label="Account balances" spacing={2}>
           <Typography component="h3" variant="h6">Account balances</Typography>

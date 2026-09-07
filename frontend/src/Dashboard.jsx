@@ -26,7 +26,7 @@ export default function Dashboard() {
     </Stack>
     {error && <Alert severity="error">{error}</Alert>}
     <Stack component="nav" aria-label="Workspace" direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
-      {[['/', 'Overview'], ['/accounts', 'Accounts'], ['/categories', 'Categories'], ['/transactions', 'Transactions'], ['/transfers', 'Transfers'], ['/budgets', 'Budgets'], ['/recurring', 'Recurring'], ['/settings', 'Settings']].map(([to, label]) =>
+      {[['/', 'Overview'], ['/accounts', 'Accounts'], ['/categories', 'Categories'], ['/transactions', 'Transactions'], ['/transfers', 'Transfers'], ['/budgets', 'Budgets'], ['/recurring', 'Recurring'], ['/goals', 'Savings goals'], ['/reports', 'Reports'], ['/settings', 'Settings']].map(([to, label]) =>
         <Button key={to} component={NavLink} to={to} end sx={{ '&.active': { bgcolor: 'action.selected' } }}>{label}</Button>)}
     </Stack>
     <Outlet />

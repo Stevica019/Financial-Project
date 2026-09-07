@@ -11,6 +11,8 @@ import Transactions from './pages/Transactions'
 import Transfers from './pages/Transfers'
 import Budgets from './pages/Budgets'
 import RecurringRules from './pages/RecurringRules'
+import SavingsGoals from './pages/SavingsGoals'
+import Reports from './pages/Reports'
 
 export default function App() {
   const { status, user, retry } = useAuth()
@@ -35,6 +37,8 @@ export default function App() {
         <Route path="/categories" element={configured ? <Categories /> : <Navigate to="/settings" replace />} />
         <Route path="/budgets" element={configured ? <Budgets /> : <Navigate to="/settings" replace />} />
         <Route path="/recurring" element={configured ? <RecurringRules /> : <Navigate to="/settings" replace />} />
+        <Route path="/goals" element={configured ? <SavingsGoals /> : <Navigate to="/settings" replace />} />
+        <Route path="/reports" element={configured ? <Reports /> : <Navigate to="/settings" replace />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -19,7 +19,7 @@ function SettingsForm({ metadata }) {
   const [saved, setSaved] = useState(false)
   const [busy, setBusy] = useState(false)
   const fields = [
-    { name: 'currency', label: 'Currency', options: [{ value: '', label: 'Choose a currency' }, ...metadata.currencies.map(code => ({ value: code, label: code }))], hint: 'All your accounts use this currency. It locks after your first account is created.' },
+    { name: 'currency', label: 'Currency', options: [{ value: '', label: 'Choose a currency' }, ...metadata.currencies.map(code => ({ value: code, label: code }))], hint: 'All your accounts and goals use this currency. It locks after your first account is created and cannot change while savings goals exist.' },
     { name: 'timezone', label: 'Timezone', options: metadata.timezones.map(zone => ({ value: zone, label: zone })), hint: 'Used for dates and monthly summaries. Check the suggested timezone before saving.' },
   ]
   async function save(event) {

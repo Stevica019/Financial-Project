@@ -10,10 +10,12 @@ Verified on this Windows machine:
 - Composer 2.8.12; Laravel Installer 5.27.0.
 - Node.js 24.19.0 and npm 11.17.0.
 - Git 2.53.0.
-- Laravel 13, Sanctum 4, React 19, MUI 9, Vite 8. Exact installed versions are in lockfiles.
+- Laravel 13, Sanctum 4, React 19, MUI 9, Vite 7.3.6, React plugin 5.2.0 and Vitest 4.1.11. Exact installed versions are in lockfiles.
 - ESLint 10 and React Hooks rules provide frontend linting. This replaces Oxlint, whose native module was blocked by Windows application control.
 
 PHP meets dependency requirements, but update its patch release before production use. PostgreSQL and its PHP driver have not been configured or verified.
+
+The frontend uses Vite 7 with compatible React-plugin and Vitest versions because Windows Application Control blocks Vite 8's Rolldown native module on this machine. The dependency and lockfile change fixes development startup, tests and builds without changing Windows security settings. Keep these tools on compatible major versions when updating. Run `npm.cmd ci` in frontend for a fresh checkout; there is no need to delete the lockfile. A nested “Application Control policy has blocked this file” error is different from a missing npm optional dependency.
 
 Restart your terminal after Node installation if Node/npm are not found. In PowerShell use npm.cmd if execution policy blocks npm.ps1.
 
@@ -107,6 +109,16 @@ For production, configure one cron entry to run `php artisan schedule:run` every
 The scheduler uses a ten-minute overlap lock, plus database transactions and unique occurrence constraints. After an abrupt process termination, the overlap lock can delay processing until it expires; only clear it with `php artisan schedule:clear-cache` after confirming the previous scheduler is no longer running. SQLite's IMMEDIATE transaction mode needs PHP 8.4+ and waits up to five seconds for a competing writer. Concurrent processing is tested on SQLite/PHP 8.4; PostgreSQL verification remains deferred with release work.
 
 If PHP is absent from PATH on the original machine, use `& "$env:USERPROFILE/.config/herd-lite/bin/php.exe" artisan test` from backend, and set `$env:PHP_BINARY="$env:USERPROFILE/.config/herd-lite/bin/php.exe"` before browser tests.
+
+## Savings goals and reports
+
+Apply the additive savings-goals migration with `php artisan migrate` from backend after updating. It has been applied to the original local database on 2026-09-07 and preserves existing financial records.
+
+Savings goals supports creating, editing and deleting goals. In Edit, set Saved amount to the total saved so far and choose Active, Completed or Cancelled. Progress is manual: it does not reserve funds, generate transactions or affect balances. Targets must be positive; saved totals may be zero or exceed the target. Target date and description are optional, and past dates are allowed. Status changes are explicit and reversible. Overview shows active goal progress across all dates. Currency cannot change while goals exist; the permanent first-account currency lock also still applies.
+
+Reports supports month selection, income/expenses/net cash flow, spending by category, and comparison with the previous calendar month. Change is the selected total minus the previous total, in your currency. An unfinished month is compared with the whole previous month. Archived-account entries count; opening balances, transfers and manual goals do not. Corrections are reflected on reopening Reports or selecting Refresh.
+
+Backend coverage includes goal lifecycle, validation, ownership, unchanged balances, currency protection, report boundaries, previous-month totals and correction/deletion effects. `frontend/src/GoalsReports.test.jsx` covers validation retry and failed report loads; `frontend/e2e/goals-reports.spec.js` covers the mobile workflow. See ROADMAP.md for actual verification results and any environment blockers.
 
 ## Verification
 

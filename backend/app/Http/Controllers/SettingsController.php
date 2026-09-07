@@ -34,6 +34,9 @@ class SettingsController extends Controller
             if ($user->currency_locked && $data['currency'] !== $user->currency) {
                 throw ValidationException::withMessages(['currency' => 'Currency cannot change after your first account is created.']);
             }
+            if ($data['currency'] !== $user->currency && $user->savingsGoals()->exists()) {
+                throw ValidationException::withMessages(['currency' => 'Currency cannot change while savings goals exist.']);
+            }
             $user->currency = $data['currency'];
             $user->timezone = $data['timezone'];
             $user->save();

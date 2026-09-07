@@ -1,17 +1,20 @@
 # Progress and roadmap
 
-Last updated: 2026-09-06.
+Last updated: 2026-09-07.
 
 Read this file first when resuming work, then [Project.md](Project.md) for requirements and financial rules, and [README.md](README.md) for setup and test commands. Inspect the current code and Git status before making changes.
 
 ## Current handoff
 
-- Latest committed checkpoint: `0ae4311` (financial dashboard), reviewed by the user. Earlier foundation milestones are recorded in Git.
-- Implemented since that checkpoint (uncommitted): monthly expense-category budgets, spent/remaining/percentage progress, dashboard budget summaries, and daily/weekly/monthly/yearly recurring income and expense rules with edit/pause/resume/delete screens.
-- The user deferred MVP release on 2026-09-06 to implement these two extended milestones. PostgreSQL verification, production deployment and the release checklist remain open.
+- Latest committed checkpoint: `b244d2e` (budgets and recurring transactions). Earlier foundation milestones are recorded in Git.
+- Implemented this session (uncommitted): savings goal CRUD, manual progress, explicit active/completed/cancelled status, dashboard active goals, and monthly reports with expense-category totals and previous-month monetary comparisons. Reports share the dashboard's monthly calculations. Goal amounts never affect balances or transactions; currency changes are rejected while goals exist.
+- The user requested continuing extended-version tasks on 2026-09-07. Deployment and release work remain deferred until the app is done, as requested.
+- Applied the additive savings-goals migration to the local database, preserving existing financial data.
+- Verified on 2026-09-07: 59 backend tests (844 assertions), 16 frontend tests, all 9 browser tests, frontend lint/build and PHP formatting passed. Browser coverage includes mobile savings-goal CRUD/status/progress, report month comparisons, dashboard balances, and all existing financial workflows. The build retains the existing bundle-size warning.
+- Resolved the Windows Rolldown startup blocker by switching to Vite 7.3.6, React plugin 5.2.0 and Vitest 4.1.11 in package.json and the lockfile. This compatible tooling stack runs successfully; no Windows security settings were changed. README.md documents the reason and setup. Avoid upgrading these tools to incompatible majors without verification.
 - Recurring processing uses user-local dates, anchored month/year clamping, inclusive end dates, bounded catch-up, atomic receipt/entry/schedule writes and durable retry protection even after generated entries are deleted. Account archiving pauses rules; unarchiving does not resume them.
 - The additive budget/recurring migration has been applied to the local database. Existing financial records are preserved. The every-minute scheduler is registered; start it locally with `php artisan schedule:work` from backend. No persistent OS scheduler task was installed. Operating instructions are in README.md.
-- Verified on 2026-09-06: 55 backend tests (723 assertions), 14 frontend tests, 8 browser tests, frontend lint/build and PHP formatting. Tests include two simultaneous scheduler workers on a temporary SQLite database, failure rollback/retry, DST and leap/month/year boundaries, budget corrections, ownership, migration rollback/reapplication and mobile CRUD/error states. The existing bundle-size warning remains.
+- Previous verification on 2026-09-06: 55 backend tests (723 assertions), 14 frontend tests, 8 browser tests, frontend lint/build and PHP formatting. These frontend results predate this session's goals/reports changes. The existing bundle-size warning remains a release follow-up.
 - SQLite uses IMMEDIATE transactions and a five-second busy timeout to avoid concurrent read-to-write lock upgrades; this is verified with PHP 8.4. PostgreSQL behavior is still unverified.
 - Browser test files now run with separate backends/databases so unrelated registration workflows do not share rate-limit quotas. Production rate limits are unchanged.
 - Tooling change: ESLint 10 with React Hooks checks replaces Oxlint because Windows blocked Oxlint's native module. No Windows security policy was changed.
@@ -31,17 +34,17 @@ Complete each feature with its backend, usable UI, validation, ownership checks,
 - [x] **Transaction browsing:** backend search, filters, sorting, pagination, and frontend controls.
 - [x] **Transfers:** one logical transfer with create/edit/delete flows, both account histories, atomic writes where needed, and correct effects on balances.
 - [x] **Financial dashboard:** actual account/total balances, monthly income/expenses/net cash flow, and recent activity. Replaces the placeholder.
-- [ ] **MVP release:** PostgreSQL migration/behavior checks, full financial-flow verification, responsive/keyboard review, production configuration/deployment, setup notes, and demo.
+- [ ] **MVP release:** PostgreSQL migration/behavior checks, full financial-flow verification, responsive/keyboard review, production configuration/deployment, setup notes, and demo. (Me, user wont dont want to focus on this right now, we will be doing this later in the future perhaps the whole project when its done)
 
 ### Extended version
 
-The user requested budgets and recurring transactions before MVP release. Preserve the deferred release checklist below.
+The user requested continuing the extended features before release. Preserve the deferred release checklist below.
 
 - [x] Monthly category budgets and progress.
 - [x] Recurring income/expenses, scheduler, retry safety, and scheduling tests.
-- [ ] Savings goals with manually tracked progress.
-- [ ] Monthly reports and previous-month comparisons.
-- [ ] Verify and deploy the extended version; document scheduler operation.
+- [x] Savings goals with manually tracked progress.
+- [x] Monthly reports and previous-month comparisons.
+- [ ] Verify and deploy the extended version; document scheduler operation. (Skip untill app is done, deploy full version)
 
 ### Optional and deferred
 
@@ -54,7 +57,7 @@ Only pursue these after required work, with scope confirmed in Project.md.
 
 ## Next work
 
-The requested budgets and recurring milestones are complete locally and ready for review; changes are not committed. The next extended milestone is savings goals with manually tracked progress, followed by monthly reports. Neither was included in this implementation request. Keep scheduler operation documented and complete production database/release checks before deployment.
+The extended feature milestones are implemented and verified locally, ready for user review. Keep deployment deferred per the user's instruction. A visual polish pass and optional CSV features remain candidates for a separately confirmed next scope. Full release keyboard/responsive review and PostgreSQL checks stay on the deferred release checklist. No commit was created in this session.
 
 ## Deferred MVP release
 

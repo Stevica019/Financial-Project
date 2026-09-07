@@ -14,7 +14,7 @@ This is also a full-stack project with authentication, backend validation, relat
 
 ## Scope and priorities
 
-The user deferred MVP release work on 2026-09-06 and requested monthly budgets and recurring transactions next. Keep release verification and deployment open while implementing these extended features. Testing, authorization, and usable error states are part of each feature.
+The user deferred release work and requested continuing the extended version on 2026-09-07: savings goals and monthly reports follow the completed budgets and recurring transactions. Deployment remains deferred until the full app is done. Testing, authorization, and usable error states are part of each feature.
 
 | Tier | Features |
 | --- | --- |
@@ -91,6 +91,9 @@ Transfers use a separate table. Transactions represent only income or expenses.
 - Allow one budget per user, category, and calendar month.
 - Budget usage is the sum of that month's matching expenses; remaining budget may be negative. No rollover in the initial version.
 - Savings goals initially track manually entered progress. Updating progress does not create a transaction, reserve money, or change account balances. Make this clear in the UI.
+- Goals have a required name (up to 100 characters), positive target, nonnegative manually entered saved total, optional target date and description (up to 1000 characters). Money uses the existing 12 whole-number digit limit. Overfunding is allowed; remaining is floored at zero and percentage may exceed 100%.
+- Goal status is explicitly chosen: active, completed or cancelled. Reaching the target does not automatically change status, and users may reopen goals or correct progress in any status. Past target dates are allowed so overdue goals remain editable. Goal deletion requires UI confirmation.
+- Currency cannot change while any savings goals exist, including completed/cancelled goals. Before the first account, deleting all goals removes this temporary restriction; the existing permanent first-account currency lock remains unchanged.
 - If account-linked goals are added later, define allocation rules before changing this behavior.
 
 ## Data model
@@ -134,6 +137,8 @@ Keep charts limited to useful summaries. Every asynchronous screen needs loading
 Browsing APIs use `search`, `account_id`, `category_id`, `type`, `date_from`, `date_to`, `amount_min`, `amount_max`, `sort`, `direction`, `page`, and `per_page`. Date/amount ranges are inclusive; amount bounds are nonnegative decimal strings. Sort fields are date, amount and description with ascending/descending direction and deterministic kind/ID tie breakers. Pages default to 20 records and are limited to 100. Search treats `%` and `_` literally. Transfers can be filtered by either endpoint and searched by description. Account history combines entries and transfers before filtering/pagination; category filters select only entries. Filters apply explicitly and reset the page; corrections refresh results without clearing the active filters.
 
 `GET /api/dashboard` accepts an optional `month=YYYY-MM`, defaulting to the current month in the user's timezone. It returns current total/account balances, selected-month income/expenses/net cash flow, and the latest 10 entries/transfers across all dates. Month selection affects monthly totals and category budget progress. Archived accounts remain included; each transfer appears once in recent activity. The dashboard reuses centralized balance and activity queries and refreshes when reopened or explicitly refreshed.
+
+`GET /api/reports` accepts the same optional month and timezone default. It returns selected and previous calendar-month income, expenses and net cash flow, signed monetary changes (selected minus previous), and selected-month spending grouped by expense category, ordered by spending then category ID. Empty months return zero totals and no categories. Comparisons use whole calendar months of recorded activity, so an unfinished month is not prorated. No percentage change is calculated, avoiding ambiguous zero/negative prior net cash flow. Reports and dashboard share monthly calculations; transfers, opening balances and manual goal progress are excluded. Reports refresh on reopening or Refresh. Dashboard also shows active goals independently of the selected month.
 
 Archiving an account prevents new activity and pauses its recurring rules. Preserve its history and allow corrections to existing records without moving them into another archived account. Unarchiving does not automatically resume recurring rules.
 
