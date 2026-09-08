@@ -6,6 +6,7 @@ import { useAuth } from '../auth/useAuth'
 import { useRemote } from '../useRemote'
 import FormField from '../components/FormField'
 import RemoteState from '../components/RemoteState'
+import AppearanceControl from '../components/AppearanceControl'
 
 function SettingsForm({ metadata }) {
   const { user, updateUser } = useAuth()
@@ -51,8 +52,30 @@ function SettingsForm({ metadata }) {
 
 export default function Settings() {
   const remote = useRemote('/settings')
+  const { user } = useAuth()
   return <Stack spacing={3}>
-    <Typography component="h2" variant="h5">Settings</Typography>
-    <RemoteState remote={remote}>{remote.data && <SettingsForm metadata={remote.data} />}</RemoteState>
+    <Box><Typography component="h1" variant="h5">Settings</Typography>
+      <Typography color="text.secondary" sx={{ mt: 0.5 }}>Your profile, workspace appearance, and financial preferences.</Typography></Box>
+    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+      <Paper component="section" aria-labelledby="profile-title" variant="outlined" sx={{ p: 3, minWidth: 0 }}>
+        <Typography id="profile-title" component="h2" variant="h6">Profile</Typography>
+        <Box component="dl" sx={{ m: 0, mt: 2, overflowWrap: 'anywhere' }}>
+          <Typography component="dt" variant="body2" color="text.secondary">Name</Typography>
+          <Typography component="dd" sx={{ m: 0, mb: 2, fontWeight: 600 }}>{user.name}</Typography>
+          <Typography component="dt" variant="body2" color="text.secondary">Email</Typography>
+          <Typography component="dd" sx={{ m: 0 }}>{user.email}</Typography>
+        </Box>
+      </Paper>
+      <Paper component="section" aria-labelledby="display-title" variant="outlined" sx={{ p: 3, minWidth: 0 }}>
+        <Stack spacing={3}>
+          <Typography id="display-title" component="h2" variant="h6">Display</Typography>
+          <AppearanceControl />
+        </Stack>
+      </Paper>
+    </Box>
+    <Stack component="section" aria-labelledby="preferences-title" spacing={2}>
+      <Typography id="preferences-title" component="h2" variant="h6">Financial preferences</Typography>
+      <RemoteState remote={remote}>{remote.data && <SettingsForm metadata={remote.data} />}</RemoteState>
+    </Stack>
   </Stack>
 }

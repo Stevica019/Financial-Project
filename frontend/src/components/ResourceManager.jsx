@@ -6,6 +6,7 @@ import FormField from './FormField'
 import RemoteState from './RemoteState'
 import BrowseControls from './BrowseControls'
 import CsvExport from './CsvExport'
+import Icon from './Icon'
 
 function Editor({ noun, fields, initialValues, onClose, onSave, editing }) {
   const [values, setValues] = useState(initialValues)
@@ -86,9 +87,9 @@ export default function ResourceManager({ title, noun, endpoint, writeEndpoint =
     finally { setBusy(false) }
   }
   return <Stack spacing={3}>
-    <Stack direction="row" spacing={2} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-      <Typography component="h2" variant="h5">{title}</Typography>
-      <Button variant="contained" disabled={busy || remote.loading || Boolean(remote.error)} onClick={() => { setError(''); setEditor({}) }}>Add {noun}</Button>
+    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ justifyContent: 'space-between', alignItems: { xs: 'start', sm: 'center' } }}>
+      <Typography component="h1" variant="h5">{title}</Typography>
+      <Button variant="contained" startIcon={<Icon name="plus" />} disabled={busy || remote.loading || Boolean(remote.error)} onClick={() => { setError(''); setEditor({}) }}>Add {noun}</Button>
     </Stack>
     <Typography color="text.secondary">{introduction}</Typography>
     {browseFields && <BrowseControls fields={browseFields} onApply={applyFilters} />}
@@ -97,7 +98,7 @@ export default function ResourceManager({ title, noun, endpoint, writeEndpoint =
     <RemoteState remote={remote}>
       {remote.data?.data.length === 0 && <Paper variant="outlined" sx={{ p: 3 }}><Typography>{browseFields ? 'No activity matches these filters.' : `No ${title.toLowerCase()} yet. Add your first ${noun} to get started.`}</Typography></Paper>}
       <Stack spacing={2}>
-        {remote.data?.data.map(record => <Paper key={`${record.kind ?? noun}-${record.id}`} component="article" aria-label={recordName(record)} variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
+        {remote.data?.data.map(record => <Paper className="resource-card" key={`${record.kind ?? noun}-${record.id}`} component="article" aria-label={recordName(record)} variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
           <Stack spacing={2}>
             <Typography component="h3" variant="h6" sx={{ overflowWrap: 'anywhere' }}>{recordName(record)}</Typography>
             {details(record)}

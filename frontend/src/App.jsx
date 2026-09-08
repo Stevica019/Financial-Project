@@ -1,4 +1,4 @@
-import { Alert, Box, Button, CircularProgress, Container, Stack, Typography } from '@mui/material'
+import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './auth/useAuth'
 import AuthPage from './auth/AuthPage'
@@ -15,6 +15,7 @@ import SavingsGoals from './pages/SavingsGoals'
 import Reports from './pages/Reports'
 import CsvImport from './pages/CsvImport'
 import Appearance from './Appearance'
+import WorkspaceNavigation from './components/WorkspaceNavigation'
 
 export default function App() {
   const { status, user, retry } = useAuth()
@@ -46,10 +47,7 @@ export default function App() {
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   }
-  return <Appearance>
-    <Container maxWidth="md" sx={{ py: { xs: 3, md: 7 } }}>
-      <Typography variant="overline" color="text.secondary">Personal Finance</Typography>
-      <Box component="main" sx={{ display: 'flex', justifyContent: 'center', py: { xs: 4, md: 7 } }}>{content}</Box>
-    </Container>
+  return <Appearance navigation={status === 'authenticated' ? <WorkspaceNavigation /> : undefined}>
+      <Box component="main" id="main-content" tabIndex={-1} className={`main-content ${status === 'authenticated' ? 'workspace-content' : 'guest-content'}`}>{content}</Box>
   </Appearance>
 }

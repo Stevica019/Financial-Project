@@ -1,3 +1,4 @@
+import { navigateWorkspace } from './navigation'
 import { test, expect } from '@playwright/test'
 
 test('sets preferences, manages accounts, and customizes categories on a small screen', async ({ page }) => {
@@ -20,7 +21,7 @@ test('sets preferences, manages accounts, and customizes categories on a small s
   await expect(page.getByLabel(/^Currency/)).toHaveValue('RSD')
   await expect(page.getByLabel(/^Timezone/)).toHaveValue('Europe/Belgrade')
 
-  await page.getByRole('link', { name: 'Accounts', exact: true }).click()
+  await navigateWorkspace(page, 'Accounts')
   await expect(page.getByText('No accounts yet.', { exact: false })).toBeVisible()
   await page.getByRole('button', { name: 'Add account' }).click()
   await page.getByLabel(/^Account name/).fill('Everyday cash')
@@ -42,13 +43,13 @@ test('sets preferences, manages accounts, and customizes categories on a small s
   await expect(account).toContainText('Archived')
   await account.getByRole('button', { name: 'Unarchive' }).click()
   await expect(account).toContainText('Active')
-  await page.getByRole('link', { name: 'Settings', exact: true }).click()
+  await navigateWorkspace(page, 'Settings')
   await expect(page.getByLabel(/^Currency/)).toBeDisabled()
   await page.getByLabel(/^Timezone/).selectOption('UTC')
   await page.getByRole('button', { name: 'Save preferences' }).click()
   await expect(page.getByText('Preferences saved.')).toBeVisible()
 
-  await page.getByRole('link', { name: 'Categories', exact: true }).click()
+  await navigateWorkspace(page, 'Categories')
   await expect(page.getByRole('article', { name: 'Salary', exact: true })).toBeVisible()
   await expect(page.getByRole('article')).toHaveCount(11)
   await page.getByRole('button', { name: 'Add category' }).click()
@@ -72,11 +73,11 @@ test('sets preferences, manages accounts, and customizes categories on a small s
   await page.getByRole('button', { name: 'Delete category', exact: true }).click()
   await expect(category).toHaveCount(0)
 
-  await page.getByRole('link', { name: 'Accounts', exact: true }).click()
+  await navigateWorkspace(page, 'Accounts')
   await page.getByRole('article', { name: 'Wallet' }).getByRole('button', { name: 'Delete', exact: true }).click()
   await page.getByRole('button', { name: 'Delete account', exact: true }).click()
   await expect(page.getByText('No accounts yet.', { exact: false })).toBeVisible()
-  await page.getByRole('link', { name: 'Settings', exact: true }).click()
+  await navigateWorkspace(page, 'Settings')
   await expect(page.getByLabel(/^Currency/)).toBeDisabled()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy()
   await page.screenshot({ path: test.info().outputPath('settings-mobile.png'), fullPage: true })

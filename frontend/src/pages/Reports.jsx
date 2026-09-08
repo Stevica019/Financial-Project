@@ -10,7 +10,7 @@ export default function Reports() {
   const data = remote.data
   return <Stack spacing={3} sx={{ width: '100%' }}>
     <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
-      <Typography component="h2" variant="h5">Monthly reports</Typography>
+      <Typography component="h1" variant="h5">Monthly reports</Typography>
       <Button onClick={remote.reload} disabled={remote.loading}>Refresh</Button>
     </Stack>
     <TextField label="Report month" type="month" value={month || data?.month || ''} onChange={event => setMonth(event.target.value)} slotProps={{ inputLabel: { shrink: true } }} sx={{ maxWidth: 260 }} />
