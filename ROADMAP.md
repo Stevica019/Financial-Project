@@ -1,23 +1,20 @@
 # Progress and roadmap
 
-Last updated: 2026-09-07.
+Last updated: 2026-09-08.
 
 Read this file first when resuming work, then [Project.md](Project.md) for requirements and financial rules, and [README.md](README.md) for setup and test commands. Inspect the current code and Git status before making changes.
 
 ## Current handoff
 
-- Latest committed checkpoint: `b244d2e` (budgets and recurring transactions). Earlier foundation milestones are recorded in Git.
-- Implemented this session (uncommitted): savings goal CRUD, manual progress, explicit active/completed/cancelled status, dashboard active goals, and monthly reports with expense-category totals and previous-month monetary comparisons. Reports share the dashboard's monthly calculations. Goal amounts never affect balances or transactions; currency changes are rejected while goals exist.
-- The user requested continuing extended-version tasks on 2026-09-07. Deployment and release work remain deferred until the app is done, as requested.
-- Applied the additive savings-goals migration to the local database, preserving existing financial data.
-- Verified on 2026-09-07: 59 backend tests (844 assertions), 16 frontend tests, all 9 browser tests, frontend lint/build and PHP formatting passed. Browser coverage includes mobile savings-goal CRUD/status/progress, report month comparisons, dashboard balances, and all existing financial workflows. The build retains the existing bundle-size warning.
-- Resolved the Windows Rolldown startup blocker by switching to Vite 7.3.6, React plugin 5.2.0 and Vitest 4.1.11 in package.json and the lockfile. This compatible tooling stack runs successfully; no Windows security settings were changed. README.md documents the reason and setup. Avoid upgrading these tools to incompatible majors without verification.
-- Recurring processing uses user-local dates, anchored month/year clamping, inclusive end dates, bounded catch-up, atomic receipt/entry/schedule writes and durable retry protection even after generated entries are deleted. Account archiving pauses rules; unarchiving does not resume them.
-- The additive budget/recurring migration has been applied to the local database. Existing financial records are preserved. The every-minute scheduler is registered; start it locally with `php artisan schedule:work` from backend. No persistent OS scheduler task was installed. Operating instructions are in README.md.
-- Previous verification on 2026-09-06: 55 backend tests (723 assertions), 14 frontend tests, 8 browser tests, frontend lint/build and PHP formatting. These frontend results predate this session's goals/reports changes. The existing bundle-size warning remains a release follow-up.
-- SQLite uses IMMEDIATE transactions and a five-second busy timeout to avoid concurrent read-to-write lock upgrades; this is verified with PHP 8.4. PostgreSQL behavior is still unverified.
-- Browser test files now run with separate backends/databases so unrelated registration workflows do not share rate-limit quotas. Production rate limits are unchanged.
-- Tooling change: ESLint 10 with React Hooks checks replaces Oxlint because Windows blocked Oxlint's native module. No Windows security policy was changed.
+- Latest committed checkpoint: `32bc67c` (savings goals and monthly reports). This session's optional features are uncommitted.
+- The user authorized CSV export, then CSV import, advanced charts and dark mode on 2026-09-08. All four are implemented. Notifications are skipped and deployment remains deferred.
+- CSV export reuses owned browsing filters/sorting across all matching pages. Import supports income, expenses and transfers with a fixed template, preview, shared financial validation, exact duplicate skipping and durable file receipts. Confirmation uses an explicit transaction; an injected database failure verifies complete rollback and successful retry.
+- Reports now include a zero-filled 12-month series, selectable 6/12-month charts and metrics, keyboard selection, exact-value tables and category spending shares. Appearance supports persistent System/Light/Dark modes throughout the app.
+- Applied the additive CSV receipt migration to the local database on 2026-09-08, preserving existing financial data. No new dependencies or environment variables are required.
+- Verified on 2026-09-08: 67 backend tests (922 assertions), 20 frontend tests, all 10 browser tests, frontend lint/build and PHP formatting passed. Mobile coverage includes CSV preview/validation/confirmation/retry, downloads, chart keyboard controls, system-theme changes and overflow checks. A mobile dark-theme screenshot was inspected and chart labels adjusted for readability.
+- The build retains the existing bundle-size warning (about 586 kB minified / 187 kB gzip). PostgreSQL verification, production configuration and deployment remain deferred.
+- Keep Vite 7.3.6, React plugin 5.2.0 and Vitest 4.1.11 on compatible majors: this stack avoids the machine's Windows Rolldown blocker. ESLint replaces blocked Oxlint. No Windows security settings were changed.
+- Recurring processing remains registered every minute. Start locally with `php artisan schedule:work`; no persistent OS task is installed. SQLite uses IMMEDIATE transactions and a five-second busy timeout. See README.md for operating instructions.
 
 ## Milestones
 
@@ -50,14 +47,16 @@ The user requested continuing the extended features before release. Preserve the
 
 Only pursue these after required work, with scope confirmed in Project.md.
 
-- [ ] Optional: CSV export, then CSV import.
-- [ ] Optional: notifications, advanced charts, dark mode.
+- [x] Optional: CSV export and CSV import (preview, validation, duplicate protection and atomic confirmation).
+- [x] Optional: advanced charts (6/12-month trends, metric selection, category shares and accessible values).
+- [x] Optional: dark mode (System/Light/Dark, persistent browser preference).
+- Notifications: skipped per user instruction.
 - Deferred beyond the initial project: currency conversion and bank integrations.
 - Optional follow-ups not yet implemented: password recovery and email verification.
 
 ## Next work
 
-The extended feature milestones are implemented and verified locally, ready for user review. Keep deployment deferred per the user's instruction. A visual polish pass and optional CSV features remain candidates for a separately confirmed next scope. Full release keyboard/responsive review and PostgreSQL checks stay on the deferred release checklist. No commit was created in this session.
+The authorized optional features are implemented and verified locally, ready for review in CSV import, Transactions/Transfers/account history, Reports, and the Appearance selector. A dedicated visual polish pass remains a possible future scope. Keep deployment, full release keyboard/responsive review and PostgreSQL checks deferred. No commit was created in this session.
 
 ## Deferred MVP release
 

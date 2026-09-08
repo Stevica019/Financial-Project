@@ -14,13 +14,13 @@ This is also a full-stack project with authentication, backend validation, relat
 
 ## Scope and priorities
 
-The user deferred release work and requested continuing the extended version on 2026-09-07: savings goals and monthly reports follow the completed budgets and recurring transactions. Deployment remains deferred until the full app is done. Testing, authorization, and usable error states are part of each feature.
+The extended features are implemented. On 2026-09-08 the user authorized the optional features in order: CSV export, CSV import, advanced charts, and dark mode. Notifications are skipped. Deployment remains deferred. Testing, authorization, and usable error states are part of each feature.
 
 | Tier | Features |
 | --- | --- |
 | MVP: required foundation | Registration, login/logout, accounts, categories, income/expenses, transfers, dashboard, transaction search/filtering/sorting, server-side pagination, core tests, deployment and setup documentation |
 | Extended version: original full-project target | Monthly budgets, recurring income/expenses, savings goals, monthly reports |
-| Optional: only after the extended version works | CSV export/import, notifications, advanced charts, dark mode |
+| Optional: only after the extended version works | CSV export/import, advanced charts, dark mode; notifications skipped |
 | Deferred beyond the initial project | Multiple currencies with conversion, bank integrations |
 
 The MVP can be completed independently. The original full-project target includes both the MVP and extended version. If time runs short, reduce feature scope explicitly rather than dropping correctness, testing, or deployment.
@@ -159,23 +159,9 @@ Archiving an account prevents new activity and pauses its recurring rules. Prese
 - A durable occurrence receipt and a unique transaction rule/scheduled-date pair protect retries. Receipts survive entry corrections/deletions; deleting a rule removes its receipts and clears generated entries' rule reference while preserving their scheduled date and financial history.
 - Each occurrence locks the owner, records the receipt, creates the entry and advances the rule in one database transaction. This shares the API write lock. SQLite uses IMMEDIATE transactions with a five-second busy timeout (PHP 8.4+); PostgreSQL uses owner row locks. The scheduler overlap lock is an additional guard, not the duplicate-prevention mechanism.
 
-## Optional CSV support
+## CSV support
 
-Implement export before import if time allows.
-
-- Export the complete result matching current filters, not just the visible page.
-- Import into a user-selected account using a documented format such as:
-
-```csv
-date,description,amount,type,category
-2026-09-01,Salary,2000.00,income,Salary
-2026-09-02,Supermarket,64.50,expense,Groceries
-```
-
-- Import flow: upload, parse, validate, preview, confirm, create.
-- Report invalid rows and unresolved categories explicitly.
-- Define duplicate handling and whether confirmation imports valid rows or requires the entire file to pass validation before implementing it.
-- Limit file sizes and handle spreadsheet formula injection in exports.
+Export and import are implemented. The final format supports income, expenses and transfers, with account/category selection by owned IDs in each row. See [the optional-feature specification](#optional-features-authorized-on-2026-09-08) for columns, limits, validation and duplicate handling, and [README.md](README.md#csv-charts-and-appearance) for the workflow.
 
 ## Validation, security, and integrity
 
@@ -207,6 +193,16 @@ Frontend priorities:
 - Loading, empty, and failure states where behavior warrants coverage.
 
 Before release, verify production database migrations, the production build, deployed authentication, and an end-to-end flow from account creation through transfers and dashboard totals.
+
+## Optional features authorized on 2026-09-08
+
+- CSV export covers transactions, transfers, and combined account history. Export respects applied filters and sorting, includes all matching pages, preserves exact decimal amounts, and includes archived-account activity. The import page also offers an all-activity export and an empty template. Opening balances, budgets, goals and recurring definitions are outside the activity CSV format.
+- CSV uses UTF-8 with a BOM, comma delimiters, standard doubled-quote escaping, and the fixed columns `type,date,amount,currency,account_id,category_id,source_account_id,destination_account_id,description,notes,account_name,category_name,source_account_name,destination_account_name`. Text beginning with formula-like characters, control characters or an apostrophe is prefixed with an apostrophe for spreadsheet safety; the app reverses its own escaping on import.
+- Import uses existing owned account/category IDs; name columns are informational. Income/expense rows need an account and a matching category. Transfers need distinct source/destination accounts and leave account/category IDs and notes blank. Currency must match user settings. All normal creation rules, including active accounts, opening dates, local today and money precision, apply through shared validation. This is an app CSV format, not automatic bank-file mapping.
+- Limit uploads to 2 MB and 1000 records. Validate every row before offering a preview; show up to 20 preview rows and report row/field errors (up to 50 field errors per response). Confirmation uses a user-bound cached token valid for 30 minutes and revalidates before writing. Save entries, transfers and the import receipt in one explicit database transaction. A failure saves nothing and permits retry.
+- Skip exact matches on activity type, accounts, category, date, amount, description and notes, including repeated rows within a file. Blank and null optional text are equivalent. This deliberately treats identical legitimate payments as duplicates; users record those manually. Import never overwrites existing records or creates accounts/categories. Durable per-user file receipts also prevent importing the same parsed file twice, even after imported records are deleted. Modified files are checked against current records again.
+- Reports include a 12-month series ending in the selected calendar month, zero-filled for empty months and derived from owned transactions including archived accounts. The chart supports income, expenses or signed net cash flow, 6/12-month selection, keyboard-selectable bars, exact-value feedback and an accessible data table. Category spending bars show amounts and shares. Floating point is used only for chart geometry/percentages; API money and displayed amounts remain exact decimal strings.
+- Appearance supports system, light and dark modes across authentication and the workspace, including dialogs, inputs and charts. The system mode follows OS changes. Only the appearance preference is stored in browser local storage; session authentication remains cookie-based. Appearance is per browser, not a server-side user preference.
 
 ## Completion criteria
 

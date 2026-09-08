@@ -13,6 +13,11 @@ class ActivityBrowser
 {
     public static function page(Request $request, string $scope = 'transactions', ?int $accountId = null)
     {
+        return self::filtered($request, $scope, $accountId)->paginate($request->input('per_page', 20))->withQueryString();
+    }
+
+    public static function filtered(Request $request, string $scope = 'transactions', ?int $accountId = null): Builder
+    {
         $types = $scope === 'transactions' ? ['income', 'expense'] : ($scope === 'transfers' ? ['transfer'] : ['income', 'expense', 'transfer']);
         $filters = $request->validate([
             'search' => ['sometimes', 'nullable', 'string', 'max:255'],
@@ -63,8 +68,7 @@ class ActivityBrowser
         }
         $direction = $filters['direction'] ?? 'desc';
 
-        return $query->orderBy($filters['sort'] ?? 'date', $direction)->orderBy('kind', $direction)->orderBy('id', $direction)
-            ->paginate($filters['per_page'] ?? 20)->withQueryString();
+        return $query->orderBy($filters['sort'] ?? 'date', $direction)->orderBy('kind', $direction)->orderBy('id', $direction);
     }
 
     public static function query(int $userId, string $scope = 'history'): Builder

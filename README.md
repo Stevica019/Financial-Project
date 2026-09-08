@@ -120,7 +120,25 @@ Reports supports month selection, income/expenses/net cash flow, spending by cat
 
 Backend coverage includes goal lifecycle, validation, ownership, unchanged balances, currency protection, report boundaries, previous-month totals and correction/deletion effects. `frontend/src/GoalsReports.test.jsx` covers validation retry and failed report loads; `frontend/e2e/goals-reports.spec.js` covers the mobile workflow. See ROADMAP.md for actual verification results and any environment blockers.
 
-## Verification
+## CSV, charts and appearance
+
+The CSV receipt migration was applied to the original local database on 2026-09-08. Other checkouts should run `php artisan migrate` from backend after updating. It adds an import receipt table without changing existing financial records.
+
+Use **Export CSV** below the browsing filters on Transactions, Transfers or account history. It downloads all rows matching the applied filters and sort, across all pages. CSV import also offers an all-activity export and a blank template. Exports include exact decimal amounts, IDs, names, dates, descriptions and notes; transfers appear once in combined exports.
+
+Open **CSV import**, download the template, and expand **Account and category IDs** for the IDs to use. Keep the headers/order, fill your currency, use `income`, `expense` or `transfer`, and enter ISO dates and positive decimal amounts. Name columns are optional and informational. Income/expense rows use account/category IDs; transfer rows use source/destination IDs and leave notes blank. Existing active accounts and matching categories are required. Arbitrary bank CSV layouts need to be adapted to this template first.
+
+Choose a UTF-8 comma-separated CSV up to 2 MB / 1000 records, select **Preview import**, review the count and first 20 records, then **Confirm import**. Row-specific errors block the whole import. Confirmation rechecks the data and saves all new activity atomically. Exact duplicate rows are skipped, including duplicates within the file; record intentionally identical payments manually. Import adds records and never edits existing ones. A receipt prevents reimporting the same parsed file even after deleting its imported records. Changed files are checked for current exact matches again. Preview tokens expire in 30 minutes; preview again after expiry or cache clearing. Both import endpoints allow 10 requests per minute per authenticated user.
+
+The format exports activity only, not account opening balances, budgets, savings goals or recurring schedules. Split files over 1000 records before importing. Formula-like text is apostrophe-prefixed for safer spreadsheet opening, and this escaping is reversed by the app importer. Preserve UTF-8, decimal precision and ID columns when editing in a spreadsheet.
+
+In **Reports**, choose a month, then use **Chart metric** and **Chart period** for a 6/12-month history ending in that month. Click a bar or focus it and press Enter/Space for its exact value; **View chart data** exposes the underlying amounts. Category shares use the selected month's expenses. Empty months show zero, and transfers/opening balances stay excluded.
+
+The **Appearance** selector at the top of the app offers System, Light and Dark. It persists in this browser and works on login and workspace screens. System follows changes to your operating-system preference. No new frontend dependency or environment setting is needed.
+
+New verification coverage is in `backend/tests/Feature/CsvAndChartsTest.php`, `frontend/src/CsvCharts.test.jsx`, and `frontend/e2e/csv-charts-theme.spec.js`. It includes export ownership/filtering/escaping, preview/confirmation, duplicate and retry protection, database-failure rollback, exact chart totals, keyboard controls, appearance persistence and mobile overflow.
+
+## Verification commands
 
 ```powershell
 cd backend

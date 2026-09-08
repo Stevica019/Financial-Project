@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button, Paper, Stack, TextField, Typography } from '@mui/material'
 import { useRemote } from '../useRemote'
 import RemoteState from '../components/RemoteState'
+import ReportCharts from '../components/ReportCharts'
 
 export default function Reports() {
   const [month, setMonth] = useState('')
@@ -26,6 +27,7 @@ export default function Reports() {
           </Stack>
         </Paper>)}
       </Stack>
+      <ReportCharts key={data.month} data={data} />
       <Stack component="section" aria-label="Spending by category" spacing={2}>
         <Typography component="h3" variant="h6">Spending by category</Typography>
         {data.spending_by_category.length === 0 && <Typography>No expenses recorded for this month.</Typography>}

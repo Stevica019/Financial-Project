@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CsvController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RecurringRuleController;
 use App\Http\Controllers\ReportController;
@@ -21,6 +22,9 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::middleware(['auth:sanctum', FinanceWriteLock::class])->group(function () {
+    Route::get('/activity/export', [CsvController::class, 'export']);
+    Route::post('/activity/import/preview', [CsvController::class, 'preview'])->middleware('throttle:10,1');
+    Route::post('/activity/import', [CsvController::class, 'store'])->middleware('throttle:10,1');
     Route::apiResource('savings-goals', SavingsGoalController::class)->except(['show']);
     Route::get('/reports', [ReportController::class, 'show']);
     Route::apiResource('budgets', BudgetController::class)->except(['show']);

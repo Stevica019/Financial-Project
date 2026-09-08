@@ -5,6 +5,7 @@ import { useRemote } from '../useRemote'
 import FormField from './FormField'
 import RemoteState from './RemoteState'
 import BrowseControls from './BrowseControls'
+import CsvExport from './CsvExport'
 
 function Editor({ noun, fields, initialValues, onClose, onSave, editing }) {
   const [values, setValues] = useState(initialValues)
@@ -91,6 +92,7 @@ export default function ResourceManager({ title, noun, endpoint, writeEndpoint =
     </Stack>
     <Typography color="text.secondary">{introduction}</Typography>
     {browseFields && <BrowseControls fields={browseFields} onApply={applyFilters} />}
+    {browseFields && <CsvExport filters={filters} scope={endpoint === '/transactions' ? 'transactions' : endpoint === '/transfers' ? 'transfers' : 'history'} accountId={endpoint.startsWith('/accounts/') ? endpoint.split('/')[2] : undefined} />}
     {error && !deleting && <Alert severity="error">{error}</Alert>}
     <RemoteState remote={remote}>
       {remote.data?.data.length === 0 && <Paper variant="outlined" sx={{ p: 3 }}><Typography>{browseFields ? 'No activity matches these filters.' : `No ${title.toLowerCase()} yet. Add your first ${noun} to get started.`}</Typography></Paper>}

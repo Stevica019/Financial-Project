@@ -16,7 +16,7 @@ test('registers, restores the session, logs out, and logs in again', async ({ pa
   await expect(page.getByRole('heading', { name: 'Welcome, Browser User' })).toBeVisible()
   const cookies = await context.cookies()
   expect(cookies.some(cookie => cookie.name.endsWith('session') && cookie.httpOnly)).toBeTruthy()
-  expect(await page.evaluate(() => localStorage.length)).toBe(0)
+  expect(await page.evaluate(() => ({ ...localStorage }))).toEqual({ 'finance-appearance': 'system' })
   await page.getByRole('button', { name: 'Sign out' }).click()
   await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
   await page.reload()
