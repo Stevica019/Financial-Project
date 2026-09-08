@@ -37,17 +37,6 @@ export default function AuthPage({ register = false }) {
 
   return (
     <Box className="auth-layout page-enter">
-    <Box className="auth-story">
-      <Typography variant="overline" className="gold-text">A LITTLE CLARITY GOES A LONG WAY</Typography>
-      <Typography component="h2" className="auth-headline">Your money.<br />Your life.<br /><span>In perspective.</span></Typography>
-      <Typography className="auth-description">A calmer space to understand your spending, build better habits, and make room for what matters to you.</Typography>
-      <Box className="auth-illustration" aria-hidden="true">
-        <div className="illustration-orbit" />
-        <div className="illustration-card"><span className="illustration-label">SMALL STEPS. BIG POSSIBILITIES.</span><Icon name="chart" /><div className="illustration-bars">{[28, 43, 37, 61, 55, 78, 92].map((height, index) => <span key={index} style={{ height: `${height}%`, '--bar-index': index }} />)}</div><span className="illustration-caption">A clearer path forward <span>↗</span></span></div>
-        <div className="illustration-tag"><Icon name="goal" fontSize="small" /> Make every goal count.</div>
-      </Box>
-      <Box className="auth-features"><span><Icon name="wallet" /> Track your everyday</span><span><Icon name="goal" /> Plan your next chapter</span></Box>
-    </Box>
     <Paper variant="outlined" className="auth-form" sx={{ p: { xs: 3, sm: 5 }, width: '100%' }}>
       <Stack spacing={3}>
         <Box>
@@ -77,6 +66,17 @@ export default function AuthPage({ register = false }) {
         </Typography>
       </Stack>
     </Paper>
+    <Box className="auth-story">
+      <Typography variant="overline" className="gold-text">A LITTLE CLARITY GOES A LONG WAY</Typography>
+      <Typography component="h2" className="auth-headline">Your money. <br />Your life. <br /><span>In perspective.</span></Typography>
+      <Typography className="auth-description">A calmer space to understand your spending, build better habits, and make room for what matters to you.</Typography>
+      <Box className="auth-illustration" aria-hidden="true">
+        <div className="illustration-orbit" />
+        <div className="illustration-card"><span className="illustration-label">SMALL STEPS. BIG POSSIBILITIES.</span><Icon name="chart" /><div className="illustration-bars">{[28, 43, 37, 61, 55, 78, 92].map((height, index) => <span key={index} style={{ height: `${height}%`, '--bar-index': index }} />)}</div><span className="illustration-caption">A clearer path forward <span>↗</span></span></div>
+        <div className="illustration-tag"><Icon name="goal" fontSize="small" /> Make every goal count.</div>
+      </Box>
+      <Box className="auth-features"><span><Icon name="wallet" /> Track your everyday</span><span><Icon name="goal" /> Plan your next chapter</span></Box>
+    </Box>
     </Box>
   )
 }

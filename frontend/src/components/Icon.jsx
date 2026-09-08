@@ -12,7 +12,7 @@ const paths = {
   plus: 'M12 5v14 M5 12h14',
   income: 'M7 17 17 7 M7 7h10v10',
   expense: 'M7 7l10 10 M7 17h10V7',
-  refresh: 'M20 7v5h-5 M4 17v-5h5 M5.1 7a8 8 0 0 1 13.2-2L20 7 M4 17l1.7 2A8 8 0 0 0 19 17',
+  refresh: 'M4 10a8 8 0 0 1 13.65-4.65L21 9 M21 3v6h-6 M20 14a8 8 0 0 1-13.65 4.65L3 15 M3 21v-6h6',
 }
 
 export default function Icon({ name, ...props }) {

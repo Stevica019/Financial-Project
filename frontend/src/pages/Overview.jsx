@@ -16,6 +16,20 @@ function SummaryCard({ label, amount, currency, icon, tone }) {
   </Paper>
 }
 
+function DashboardPanel({ title, eyebrow, description, to, action, children }) {
+  return <Stack component="section" className="dashboard-panel" aria-label={title} spacing={2}>
+    <Box>
+      <Typography variant="overline" color="text.secondary">{eyebrow}</Typography>
+      <Typography component="h3" variant="h6" sx={{ mt: 1 }}>{title}</Typography>
+      {description && <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>{description}</Typography>}
+    </Box>
+    <Stack className="dashboard-panel-content" spacing={2} tabIndex={0} role="region" aria-label={`${title} items`}>
+      {children}
+    </Stack>
+    <Button component={Link} to={to} endIcon={<Icon name="arrow" />} sx={{ alignSelf: 'start' }}>{action}</Button>
+  </Stack>
+}
+
 export default function Overview() {
   const [month, setMonth] = useState('')
   const remote = useRemote(`/dashboard${month ? `?month=${encodeURIComponent(month)}` : ''}`)
@@ -52,30 +66,22 @@ export default function Overview() {
         </Stack>
         <Typography variant="body2" color="text.secondary">The selected month controls income, expenses, net cash flow and budgets. Net cash flow excludes opening balances and transfers. Balances and recent activity cover all dates.</Typography>
         <Box className="overview-grid">
-        <Stack component="section" className="dashboard-panel" aria-label="Monthly budgets" spacing={2}>
-          <Typography variant="overline" color="text.secondary">SPEND WITH INTENTION</Typography>
-          <Typography component="h3" variant="h6">Monthly budgets</Typography>
+        <DashboardPanel title="Monthly budgets" eyebrow="SPEND WITH INTENTION" to="/budgets" action="Manage budgets">
           {!data.budgets?.length && <Box className="empty-state"><Icon name="wallet" /><Typography>No budgets for this month.</Typography><Typography variant="body2" color="text.secondary">Give your spending a little direction.</Typography></Box>}
           {data.budgets?.map(budget => <Paper key={budget.id} variant="outlined" sx={{ p: 2 }}>
             <Typography component="h4">{budget.name}</Typography>
             <BudgetProgress budget={budget} currency={data.currency} />
           </Paper>)}
-          <Button component={Link} to="/budgets" endIcon={<Icon name="arrow" />} sx={{ alignSelf: 'start', mt: 'auto' }}>Manage budgets</Button>
-        </Stack>
-        <Stack component="section" className="dashboard-panel" aria-label="Active savings goals" spacing={2}>
-          <Typography variant="overline" color="text.secondary">MAKE SPACE FOR TOMORROW</Typography>
-          <Typography component="h3" variant="h6">Active savings goals</Typography>
-          <Typography variant="body2" color="text.secondary">Manually tracked progress across all dates. Goals do not reserve money or affect balances.</Typography>
+        </DashboardPanel>
+        <DashboardPanel title="Active savings goals" eyebrow="MAKE SPACE FOR TOMORROW" to="/goals" action="Manage savings goals"
+          description="Manually tracked progress across all dates. Goals do not reserve money or affect balances.">
           {!data.goals?.length && <Box className="empty-state"><Icon name="goal" /><Typography>No active savings goals.</Typography><Typography variant="body2" color="text.secondary">Big plans start with a small first step.</Typography></Box>}
           {data.goals?.map(goal => <Paper key={goal.id} variant="outlined" sx={{ p: 2 }}>
             <Typography component="h4" sx={{ overflowWrap: 'anywhere' }}>{goal.name}</Typography>
             <GoalProgress goal={goal} currency={data.currency} />
           </Paper>)}
-          <Button component={Link} to="/goals" endIcon={<Icon name="arrow" />} sx={{ alignSelf: 'start' }}>Manage savings goals</Button>
-        </Stack>
-        <Stack component="section" className="dashboard-panel" aria-label="Account balances" spacing={2}>
-          <Typography variant="overline" color="text.secondary">THE BIGGER PICTURE</Typography>
-          <Typography component="h3" variant="h6">Account balances</Typography>
+        </DashboardPanel>
+        <DashboardPanel title="Account balances" eyebrow="THE BIGGER PICTURE" to="/accounts" action="Manage accounts">
           {data.accounts.length === 0 && <Paper variant="outlined" sx={{ p: 3 }}>No accounts yet. Add an account to start tracking your money.</Paper>}
           {data.accounts.map(account => <Paper component="article" aria-label={account.name} key={account.id} variant="outlined" sx={{ p: 2, borderRadius: 3 }}>
             <Stack spacing={1}>
@@ -85,12 +91,9 @@ export default function Overview() {
               <Button component={Link} to={`/accounts/${account.id}/history`} sx={{ alignSelf: 'start' }}>View history</Button>
             </Stack>
           </Paper>)}
-          <Button component={Link} to="/accounts" endIcon={<Icon name="arrow" />} sx={{ alignSelf: 'start' }}>Manage accounts</Button>
-        </Stack>
-        <Stack component="section" className="dashboard-panel" aria-label="Recent activity" spacing={2}>
-          <Typography variant="overline" color="text.secondary">MONEY IN MOTION</Typography>
-          <Typography component="h3" variant="h6">Recent activity</Typography>
-          <Typography variant="body2" color="text.secondary">Latest 10 entries and transfers, ordered by activity date.</Typography>
+        </DashboardPanel>
+        <DashboardPanel title="Recent activity" eyebrow="MONEY IN MOTION" to="/transactions" action="View transactions"
+          description="Latest 10 entries and transfers, ordered by activity date.">
           {data.recent_activity.length === 0 && <Paper variant="outlined" sx={{ p: 3 }}>No activity yet. Record income, an expense or a transfer to see it here.</Paper>}
           {data.recent_activity.map(entry => <Paper component="article" aria-label={entry.description || 'Transfer'} key={`${entry.kind}-${entry.id}`} variant="outlined" sx={{ p: 2, borderRadius: 3, overflowWrap: 'anywhere' }}>
             <Stack spacing={1}>
@@ -102,7 +105,7 @@ export default function Overview() {
               <Button component={Link} to={entry.kind === 'transfer' ? '/transfers' : `/accounts/${entry.account_id}/history`} sx={{ alignSelf: 'start' }}>{entry.kind === 'transfer' ? 'Manage transfers' : 'View account history'}</Button>
             </Stack>
           </Paper>)}
-        </Stack>
+        </DashboardPanel>
         </Box>
       </>}
     </RemoteState>

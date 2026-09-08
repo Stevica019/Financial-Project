@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Paper, Stack, Typography } from '@mui/material'
+import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Paper, Stack, Typography } from '@mui/material'
 import { api, requestError } from '../api'
 import { useRemote } from '../useRemote'
 import FormField from './FormField'
@@ -37,7 +37,7 @@ function Editor({ noun, fields, initialValues, onClose, onSave, editing }) {
   </Dialog>
 }
 
-export default function ResourceManager({ title, noun, endpoint, writeEndpoint = endpoint, fields, defaults, details, archivable = false, archiveLabels = ['Archive', 'Unarchive'], onSaved, introduction, browseFields, recordConfig }) {
+export default function ResourceManager({ title, noun, endpoint, writeEndpoint = endpoint, fields, defaults, details, archivable = false, archiveLabels = ['Archive', 'Unarchive'], onSaved, introduction, browseFields, recordConfig, layout = 'list' }) {
   const [filters, setFilters] = useState({})
   const [page, setPage] = useState(1)
   const query = new URLSearchParams({ ...filters, page })
@@ -97,19 +97,19 @@ export default function ResourceManager({ title, noun, endpoint, writeEndpoint =
     {error && !deleting && <Alert severity="error">{error}</Alert>}
     <RemoteState remote={remote}>
       {remote.data?.data.length === 0 && <Paper variant="outlined" sx={{ p: 3 }}><Typography>{browseFields ? 'No activity matches these filters.' : `No ${title.toLowerCase()} yet. Add your first ${noun} to get started.`}</Typography></Paper>}
-      <Stack spacing={2}>
+      <Box className={layout === 'grid' ? 'resource-grid' : 'resource-list'}>
         {remote.data?.data.map(record => <Paper className="resource-card" key={`${record.kind ?? noun}-${record.id}`} component="article" aria-label={recordName(record)} variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
-          <Stack spacing={2}>
+          <Stack spacing={2} className="resource-card-content">
             <Typography component="h3" variant="h6" sx={{ overflowWrap: 'anywhere' }}>{recordName(record)}</Typography>
             {details(record)}
-            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+            <Stack className="resource-card-actions" direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
               <Button disabled={busy} onClick={() => { setError(''); setEditor(record) }}>Edit</Button>
               {archivable && <Button disabled={busy} onClick={() => archive(record)}>{record.is_active ? archiveLabels[0] : archiveLabels[1]}</Button>}
               <Button color="error" disabled={busy} onClick={() => { setError(''); setDeleting(record) }}>Delete</Button>
             </Stack>
           </Stack>
         </Paper>)}
-      </Stack>
+      </Box>
       {browseFields && remote.data?.meta && <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
         <Typography role="status">{remote.data.meta.total} results · Page {remote.data.meta.current_page} of {remote.data.meta.last_page}</Typography>
         <Button disabled={page <= 1} onClick={() => setPage(current => current - 1)}>Previous page</Button>

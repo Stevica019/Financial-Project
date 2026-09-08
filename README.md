@@ -77,6 +77,39 @@ Authentication follows [Sanctum's SPA cookie flow](https://laravel.com/framework
 
 Local frontend hosts on port 5173 are included in config/sanctum.php. If you change the frontend origin, set SANCTUM_STATEFUL_DOMAINS in backend/.env to the exact host and port. No frontend environment variables are required for normal development. To customize the backend address, copy frontend/.env.example to frontend/.env and set API_PROXY_TARGET (default: http://127.0.0.1:8000). Restart the Vite server after changing it. This setting is only used by the development server; it is not exposed to browser code. A shell-provided API_PROXY_TARGET takes precedence, including the separate backend address used by isolated browser tests.
 
+## Realistic demo data
+
+From `backend`, run:
+
+```powershell
+php artisan migrate
+php artisan db:seed
+```
+
+Sign in as **Mila Petrovic** with **mila.petrovic@example.com** and password **MapleRiver!2026**. This is a fictional demo profile with EUR and Europe/Belgrade already configured.
+
+The demo covers every workspace page:
+
+| Page | Examples |
+| --- | --- |
+| Overview | Balances, current-month cash flow, recent activity, budgets and active goals |
+| Accounts and history | Everyday banking, rainy day savings, cash, a credit card and a settled archived salary account |
+| Transactions | Twelve calendar months of salary, freelance invoices, groceries, rent, meals, bills and travel, with searchable descriptions and notes |
+| Transfers | Monthly savings contributions, ATM withdrawals, credit card repayments and the old account closure |
+| Categories | Default income/expense categories plus Dining out, Travel, Education and Insurance |
+| Budgets | Twelve months of category limits, including unused, partially spent, fully spent and over-budget examples as the month progresses |
+| Recurring | Active monthly, weekly and yearly rules with generated history, plus a paused daily coffee rule |
+| Savings goals | Emergency fund, Lisbon trip and laptop goals, a completed home office goal and a cancelled car goal |
+| Reports | Twelve months of varying income/expenses, category spending and month comparisons |
+| CSV import | A generated file with three new entries to preview and import |
+| Settings | Completed currency and timezone settings, with the first-account currency lock |
+
+For CSV import, choose `backend/storage/app/private/demo/mila-activity.csv` in the app. It contains an expense, freelance payment and savings transfer using the actual seeded account/category IDs. These entries are deliberately not already in the ledger. Confirming imports three records; repeating the import skips duplicates. The file is local and ignored by Git.
+
+Dates are anchored to the current month **on the first run**, with no future transactions. Current-month spending includes only dates reached so far; earlier months provide full report examples. Generated recurring payments include occurrence receipts, so running the scheduler does not duplicate their history.
+
+Seeding is allowed only with `APP_ENV=local` or `testing`. It adds the demo alongside other users and never processes their recurring rules. If the demo email already exists, the entire seed is skipped, preserving its password, edits, deleted entries and original CSV. Rerunning does not move the demo forward to a new month. To create a fresh dated demo, seed a separate empty local database; `migrate:fresh` deletes all data and is not needed for normal setup.
+
 ## Budgets and recurring transactions
 
 Budgets lets you select a month and create, edit or delete a limit for each expense category. Spent, remaining and percentage used are derived from matching expenses, including archived accounts. Remaining can be negative. Transfers and opening balances are excluded, and there is no rollover. Overview shows the same progress for its selected month.
