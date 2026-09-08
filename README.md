@@ -75,7 +75,7 @@ For an existing checkout, run `composer install`, `php artisan migrate` in backe
 
 Authentication follows [Sanctum's SPA cookie flow](https://laravel.com/framework/docs/sanctum): fetch /sanctum/csrf-cookie, then POST /api/register or /api/login. POST /api/logout invalidates the session. Authentication endpoints use Laravel's web middleware for sessions and CSRF; other protected API routes use stateful Sanctum middleware. No authentication tokens are stored in browser storage.
 
-Local frontend hosts on port 5173 are included in config/sanctum.php. If you change the frontend origin, set SANCTUM_STATEFUL_DOMAINS in backend/.env to the exact host and port. No frontend environment variables are required for normal development. API_PROXY_TARGET is an optional Vite server setting used by isolated browser tests.
+Local frontend hosts on port 5173 are included in config/sanctum.php. If you change the frontend origin, set SANCTUM_STATEFUL_DOMAINS in backend/.env to the exact host and port. No frontend environment variables are required for normal development. To customize the backend address, copy frontend/.env.example to frontend/.env and set API_PROXY_TARGET (default: http://127.0.0.1:8000). Restart the Vite server after changing it. This setting is only used by the development server; it is not exposed to browser code. A shell-provided API_PROXY_TARGET takes precedence, including the separate backend address used by isolated browser tests.
 
 ## Budgets and recurring transactions
 
