@@ -33,7 +33,7 @@ export default function CsvImport() {
     } finally { setBusy(false) }
   }
   return <Stack spacing={3} sx={{ width: '100%', minWidth: 0 }}>
-    <Typography component="h2" variant="h5">CSV import</Typography>
+    <Typography component="h1" variant="h5">CSV import</Typography>
     <Typography>Import income, expenses and transfers in {user.currency}. Download the template or use an app CSV export. Keep the column headers and order. Use YYYY-MM-DD dates and positive amounts with a decimal point.</Typography>
     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}><CsvExport template /><CsvExport /></Stack>
     <Paper variant="outlined" sx={{ p: 2 }}>

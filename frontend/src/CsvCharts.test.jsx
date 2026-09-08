@@ -6,6 +6,7 @@ import CsvImport from './pages/CsvImport'
 import CsvExport from './components/CsvExport'
 import ReportCharts from './components/ReportCharts'
 import Appearance from './Appearance'
+import AppearanceControl from './components/AppearanceControl'
 
 vi.mock('./api', async importOriginal => ({ ...await importOriginal(), api: { get: vi.fn(), post: vi.fn() } }))
 vi.mock('./auth/useAuth', () => ({ useAuth: () => ({ user: { currency: 'EUR' } }) }))
@@ -64,10 +65,10 @@ test('chart supports keyboard selection, metric and period changes, and exact ac
 })
 
 test('appearance selection persists across remounts', async () => {
-  const { unmount } = render(<Appearance><div>Workspace</div></Appearance>)
+  const { unmount } = render(<Appearance><AppearanceControl /></Appearance>)
   fireEvent.change(screen.getByLabelText('Appearance'), { target: { value: 'dark' } })
   expect(localStorage.getItem('finance-appearance')).toBe('dark')
   unmount()
-  render(<Appearance><div>Workspace</div></Appearance>)
+  render(<Appearance><AppearanceControl /></Appearance>)
   expect(screen.getByLabelText('Appearance')).toHaveValue('dark')
 })

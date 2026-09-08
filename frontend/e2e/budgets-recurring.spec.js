@@ -1,3 +1,4 @@
+import { navigateWorkspace } from './navigation'
 import { test, expect } from '@playwright/test'
 
 test('manages budgets and recurring rules with validation and mobile navigation', async ({ page }) => {
@@ -26,7 +27,7 @@ test('manages budgets and recurring rules with validation and mobile navigation'
     await write('transactions', { account_id: account.id, category_id: category.id, type: 'expense', amount: '12.01', date: '2026-02-28', description: 'Subscription payment' })
     return { account: String(account.id), category: String(category.id) }
   })
-  await page.getByRole('link', { name: 'Budgets', exact: true }).click()
+  await navigateWorkspace(page, 'Budgets')
   await page.getByLabel('Budget month').fill('2026-02')
   await page.getByRole('button', { name: 'Add budget' }).click()
   await page.getByLabel(/^Expense category/).selectOption(ids.category)
@@ -45,10 +46,10 @@ test('manages budgets and recurring rules with validation and mobile navigation'
   await page.getByLabel(/^Monthly limit/).fill('20.00')
   await page.getByRole('button', { name: 'Save budget' }).click()
   await expect(budget).toContainText('Remaining: EUR 7.99')
-  await page.getByRole('link', { name: 'Overview', exact: true }).click()
+  await navigateWorkspace(page, 'Overview')
   await page.getByLabel('Summary month').fill('2026-02')
   await expect(page.getByRole('region', { name: 'Monthly budgets' })).toContainText('Spent: EUR 12.01')
-  await page.getByRole('link', { name: 'Recurring', exact: true }).click()
+  await navigateWorkspace(page, 'Recurring')
   await page.getByRole('button', { name: 'Add rule' }).click()
   await page.getByLabel(/^Account/).selectOption(ids.account)
   await page.getByLabel(/^Category/).selectOption(ids.category)
@@ -72,7 +73,7 @@ test('manages budgets and recurring rules with validation and mobile navigation'
   await rule.getByRole('button', { name: 'Delete', exact: true }).click()
   await page.getByRole('button', { name: 'Delete rule', exact: true }).click()
   await expect(rule).toHaveCount(0)
-  await page.getByRole('link', { name: 'Budgets', exact: true }).click()
+  await navigateWorkspace(page, 'Budgets')
   await page.getByLabel('Budget month').fill('2026-02')
   await budget.getByRole('button', { name: 'Delete', exact: true }).click()
   await page.getByRole('button', { name: 'Delete budget', exact: true }).click()

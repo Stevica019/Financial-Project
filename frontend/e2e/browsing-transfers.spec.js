@@ -1,3 +1,4 @@
+import { navigateWorkspace } from './navigation'
 import { test, expect } from '@playwright/test'
 
 async function register(page) {
@@ -30,7 +31,7 @@ test('browses server pages, combines filters, recovers from validation and delet
   for (let i = 1; i <= 11; i++) {
     await create(page, 'transactions', { account_id: account.id, category_id: category.id, type: 'expense', amount: `${i}.00`, date: '2026-02-01', description: `Purchase ${i}`, notes: i === 3 ? 'Special receipt' : '' })
   }
-  await page.getByRole('link', { name: 'Transactions', exact: true }).click()
+  await navigateWorkspace(page, 'Transactions')
   await page.getByLabel('Results per page').selectOption('10')
   await page.getByLabel('Sort by').selectOption('amount')
   await page.getByLabel('Sort direction').selectOption('asc')
@@ -79,7 +80,7 @@ test('transfers money, shows direction in both histories, and corrects and delet
   await register(page)
   const bank = await create(page, 'accounts', { name: 'Bank', type: 'checking', opening_balance: '100', opening_date: '2026-01-01' })
   const cash = await create(page, 'accounts', { name: 'Cash', type: 'cash', opening_balance: '0', opening_date: '2026-01-01' })
-  await page.getByRole('link', { name: 'Transfers', exact: true }).click()
+  await navigateWorkspace(page, 'Transfers')
   await page.getByRole('button', { name: 'Add transfer' }).click()
   await page.getByLabel(/^Source account/).selectOption(String(bank.id))
   await page.getByLabel(/^Destination account/).selectOption(String(bank.id))
@@ -91,7 +92,7 @@ test('transfers money, shows direction in both histories, and corrects and delet
   await page.getByRole('button', { name: 'Save transfer' }).click()
   await expect(page.getByRole('article', { name: 'ATM withdrawal' })).toContainText('Bank → Cash')
   await expect(page.getByText('1 results · Page 1 of 1')).toBeVisible()
-  await page.getByRole('link', { name: 'Accounts', exact: true }).click()
+  await navigateWorkspace(page, 'Accounts')
   await expect(page.getByRole('article', { name: 'Bank', exact: true })).toContainText('Current balance: EUR 89.75')
   await expect(page.getByRole('article', { name: 'Cash', exact: true })).toContainText('Current balance: EUR 10.25')
   await page.getByRole('article', { name: 'Cash', exact: true }).getByRole('link', { name: 'View history' }).click()

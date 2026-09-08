@@ -1,3 +1,4 @@
+import { navigateWorkspace } from './navigation'
 import { test, expect } from '@playwright/test'
 
 test('manual goals and monthly comparisons work on mobile', async ({ page }) => {
@@ -27,7 +28,7 @@ test('manual goals and monthly comparisons work on mobile', async ({ page }) => 
       await write('transactions', { account_id: account.id, category_id: category.id, type: 'expense', amount, date, description: 'Food' })
     }
   })
-  await page.getByRole('link', { name: 'Savings goals', exact: true }).click()
+  await navigateWorkspace(page, 'Savings goals')
   await page.getByRole('button', { name: 'Add goal' }).click()
   await page.getByLabel(/^Goal name/).fill('Holiday')
   await page.getByLabel(/^Target amount/).fill('0')
@@ -44,10 +45,10 @@ test('manual goals and monthly comparisons work on mobile', async ({ page }) => 
   await expect(goal).toContainText('125% reached')
   await page.reload()
   await expect(goal).toContainText('125% reached')
-  await page.getByRole('link', { name: 'Overview', exact: true }).click()
+  await navigateWorkspace(page, 'Overview')
   await expect(page.getByRole('region', { name: 'Active savings goals' })).toContainText('Holiday')
   await expect(page.getByRole('region', { name: 'Total balance', exact: true })).toContainText('EUR 69.98')
-  await page.getByRole('link', { name: 'Savings goals', exact: true }).click()
+  await navigateWorkspace(page, 'Savings goals')
   for (const status of ['completed', 'cancelled', 'active']) {
     await goal.getByRole('button', { name: 'Edit' }).click()
     await page.getByLabel(/^Status/).selectOption(status)
@@ -57,7 +58,7 @@ test('manual goals and monthly comparisons work on mobile', async ({ page }) => 
   await goal.getByRole('button', { name: 'Delete', exact: true }).click()
   await page.getByRole('button', { name: 'Delete goal', exact: true }).click()
   await expect(goal).toHaveCount(0)
-  await page.getByRole('link', { name: 'Reports', exact: true }).click()
+  await navigateWorkspace(page, 'Reports')
   await page.getByLabel('Report month').fill('2024-02')
   await expect(page.getByRole('region', { name: 'Expenses', exact: true })).toContainText('Change: EUR 10.02')
   await expect(page.getByRole('region', { name: 'Net cash flow', exact: true })).toContainText('Selected: EUR -20.02')

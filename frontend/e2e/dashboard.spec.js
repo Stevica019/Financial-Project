@@ -1,3 +1,4 @@
+import { navigateWorkspace } from './navigation'
 import { test, expect } from '@playwright/test'
 
 test('shows exact dashboard totals, month selection, archived balances and refreshed corrections on mobile', async ({ page }) => {
@@ -14,7 +15,7 @@ test('shows exact dashboard totals, month selection, archived balances and refre
   await page.getByLabel(/^Timezone/).selectOption('UTC')
   await page.getByRole('button', { name: 'Save preferences' }).click()
   await expect(page.getByText('Preferences saved.')).toBeVisible()
-  await page.getByRole('link', { name: 'Overview', exact: true }).click()
+  await navigateWorkspace(page, 'Overview')
   await expect(page.getByText(/No accounts yet/)).toBeVisible()
   await expect(page.getByRole('region', { name: 'Total balance', exact: true })).toContainText('EUR 0.00')
 
@@ -52,7 +53,7 @@ test('shows exact dashboard totals, month selection, archived balances and refre
   await page.getByLabel(/^Amount/).fill('30.02')
   await page.getByRole('button', { name: 'Save entry' }).click()
   await expect(page.getByRole('article', { name: 'Dinner', exact: true })).toContainText('EUR 30.02')
-  await page.getByRole('link', { name: 'Overview', exact: true }).click()
+  await navigateWorkspace(page, 'Overview')
   await page.getByLabel('Summary month').fill('2026-02')
   await expect(page.getByRole('region', { name: 'Net cash flow', exact: true })).toContainText('EUR 69.99')
   await expect(page.getByRole('region', { name: 'Total balance', exact: true })).toContainText('EUR 149.99')

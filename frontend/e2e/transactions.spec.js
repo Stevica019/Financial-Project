@@ -1,3 +1,4 @@
+import { navigateWorkspace } from './navigation'
 import { test, expect } from '@playwright/test'
 
 test('records, corrects, and deletes activity with exact balances and protected history', async ({ page }) => {
@@ -14,14 +15,14 @@ test('records, corrects, and deletes activity with exact balances and protected 
   await page.getByLabel(/^Timezone/).selectOption('UTC')
   await page.getByRole('button', { name: 'Save preferences' }).click()
   await expect(page.getByText('Preferences saved.')).toBeVisible()
-  await page.getByRole('link', { name: 'Accounts', exact: true }).click()
+  await navigateWorkspace(page, 'Accounts')
   await page.getByRole('button', { name: 'Add account' }).click()
   await page.getByLabel(/^Account name/).fill('Wallet')
   await page.getByLabel(/^Opening balance/).fill('100.00')
   await page.getByLabel(/^Opening date/).fill('2026-01-01')
   await page.getByRole('button', { name: 'Save account' }).click()
   await expect(page.getByRole('article', { name: 'Wallet' })).toBeVisible()
-  await page.getByRole('link', { name: 'Transactions', exact: true }).click()
+  await navigateWorkspace(page, 'Transactions')
   await page.getByRole('button', { name: 'Add entry' }).click()
   await page.getByLabel(/^Entry type/).selectOption('income')
   await page.getByLabel(/^Account/).selectOption({ label: 'Wallet' })
@@ -41,7 +42,7 @@ test('records, corrects, and deletes activity with exact balances and protected 
   await page.getByLabel(/^Notes/).fill('A small expense')
   await page.getByRole('button', { name: 'Save entry' }).click()
   await expect(page.getByRole('article', { name: 'Lunch' })).toContainText('Expense: EUR 0.20')
-  await page.getByRole('link', { name: 'Accounts', exact: true }).click()
+  await navigateWorkspace(page, 'Accounts')
   const wallet = page.getByRole('article', { name: 'Wallet' })
   await expect(wallet).toContainText('Current balance: EUR 99.90')
   await wallet.getByRole('button', { name: 'Delete', exact: true }).click()

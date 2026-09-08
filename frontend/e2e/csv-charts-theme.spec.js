@@ -1,3 +1,4 @@
+import { navigateWorkspace } from './navigation'
 import { test, expect } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
 
@@ -6,12 +7,12 @@ test('CSV preview, validation, import, filtered downloads, charts and appearance
   page.on('pageerror', error => errors.push(error.message))
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/register')
-  await page.getByLabel('Appearance').selectOption('dark')
   await page.getByLabel(/^Name/).fill('CSV User')
   await page.getByLabel(/^Email/).fill(`csv-${Date.now()}@example.com`)
   await page.getByLabel(/^Password/).fill('a-long-browser-test-password')
   await page.getByLabel(/^Confirm password/).fill('a-long-browser-test-password')
   await page.getByRole('button', { name: 'Create account' }).click()
+  await page.getByLabel('Appearance').selectOption('dark')
   await page.getByLabel(/^Currency/).selectOption('EUR')
   await page.getByLabel(/^Timezone/).selectOption('UTC')
   await page.getByRole('button', { name: 'Save preferences' }).click()
@@ -29,7 +30,7 @@ test('CSV preview, validation, import, filtered downloads, charts and appearance
       category: await write('categories', { name: 'CSV food', type: 'expense' }),
     }
   })
-  await page.getByRole('link', { name: 'CSV import', exact: true }).click()
+  await navigateWorkspace(page, 'CSV import')
   const downloadTemplate = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Download CSV template' }).click()
   const template = await readFile(await (await downloadTemplate).path(), 'utf8')
@@ -48,15 +49,15 @@ test('CSV preview, validation, import, filtered downloads, charts and appearance
   await expect(page.getByText(/This file was already imported/)).toBeVisible()
   await page.getByRole('button', { name: 'Confirm import' }).click()
   await expect(page.getByRole('alert')).toContainText('Imported 0 records; skipped 2')
-  await page.getByRole('link', { name: 'Overview', exact: true }).click()
+  await navigateWorkspace(page, 'Overview')
   await expect(page.getByRole('region', { name: 'Total balance', exact: true })).toContainText('EUR 89.99')
-  await page.getByRole('link', { name: 'Transactions', exact: true }).click()
+  await navigateWorkspace(page, 'Transactions')
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Export CSV', exact: true }).click()
   const exported = await readFile(await (await download).path(), 'utf8')
   expect(exported).toContain('CSV lunch')
   expect(exported).not.toContain('Cash move')
-  await page.getByRole('link', { name: 'Reports', exact: true }).click()
+  await navigateWorkspace(page, 'Reports')
   await page.getByLabel('Report month').fill('2024-03')
   const bar = page.getByRole('button', { name: '2024-02: Net cash flow EUR -10.01' })
   await bar.focus(); await page.keyboard.press('Enter')
@@ -68,6 +69,7 @@ test('CSV preview, validation, import, filtered downloads, charts and appearance
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy()
   await page.screenshot({ path: 'test-results/reports-dark-mobile.png', fullPage: true })
   await page.reload()
+  await navigateWorkspace(page, 'Settings')
   await expect(page.getByLabel('Appearance')).toHaveValue('dark')
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe('dark')
   await page.getByLabel('Appearance').selectOption('light')
