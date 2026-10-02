@@ -12,9 +12,11 @@ test('workspace navigation supports keyboard access and both themes fit desktop 
     budgets: [], goals: [],
     recent_activity: [{ id: 1, kind: 'transaction', type: 'expense', description: 'Weekly groceries', amount: '64.50', date: '2026-09-08', account_id: 1, account_name: 'Everyday account', category_name: 'Groceries' }],
   } }))
+  await page.route('**/api/accounts', route => route.fulfill({ json: { data: [{ id: 1, name: 'Everyday account', is_active: true }] } }))
+  await page.route('**/api/categories', route => route.fulfill({ json: { data: [] } }))
   await page.route('**/api/settings', route => route.fulfill({ json: { user: { currency: 'EUR', timezone: 'UTC' }, currencies: ['EUR'], timezones: ['UTC'] } }))
   await page.goto('/')
-  await expect(page.getByRole('region', { name: 'Total balance', exact: true })).toContainText('EUR 12840.50')
+  await expect(page.getByRole('region', { name: 'Total balance', exact: true })).toContainText('€12,840.50')
   await expect(page.getByText('alex@example.com', { exact: true })).toHaveCount(0)
   await expect(page.getByLabel('Appearance')).toHaveCount(0)
   await expect(page.getByText('Welcome, Alex')).toHaveCount(0)

@@ -42,6 +42,6 @@ test('reports hide stale results after a month change fails and allow retry', as
   expect(screen.queryByRole('region', { name: 'Income' })).not.toBeInTheDocument()
   fail = false
   await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
-  expect(await screen.findByRole('region', { name: 'Income' })).toHaveTextContent('Change: EUR 0.00')
+  expect(await screen.findByRole('region', { name: 'Income' })).toHaveTextContent('Change: €0.00')
   expect(api.get).toHaveBeenLastCalledWith('/reports?month=2026-02', expect.anything())
 })

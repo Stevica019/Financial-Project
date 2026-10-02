@@ -4,6 +4,7 @@ import { useAuth } from '../auth/useAuth'
 import { useRemote } from '../useRemote'
 import RemoteState from '../components/RemoteState'
 import ResourceManager from '../components/ResourceManager'
+import { formatDate, formatMoney } from '../format'
 
 const typeName = value => value.replaceAll('_', ' ')
 
@@ -21,13 +22,13 @@ export default function Accounts() {
     {remote.data && <ResourceManager title="Accounts" noun="account" endpoint="/accounts" fields={fields}
       defaults={{ name: '', type: 'checking', opening_balance: '0.00', opening_date: remote.data.today, description: '' }} archivable
       onSaved={() => updateUser({ currency_locked: true })}
-      introduction="Add the places where you keep money. Balances include recorded income and expenses. Archive accounts you no longer use to preserve their history."
+      introduction="The places you keep money, such as bank accounts, cash and cards."
       details={account => <Stack spacing={1}>
         <Stack direction="row" spacing={1}><Chip label={typeName(account.type)} size="small" /><Chip label={account.is_active ? 'Active' : 'Archived'} size="small" variant="outlined" /></Stack>
-        <Typography>Opening balance: {user.currency} {account.opening_balance}</Typography>
-        <Typography>Current balance: {user.currency} {account.balance}</Typography>
+        <Typography>Opening balance: {formatMoney(account.opening_balance, user.currency)}</Typography>
+        <Typography>Current balance: {formatMoney(account.balance, user.currency)}</Typography>
         <Button component={Link} to={`/accounts/${account.id}/history`} sx={{ alignSelf: 'flex-start' }}>View history</Button>
-        <Typography variant="body2" color="text.secondary">Opening date: {account.opening_date}</Typography>
+        <Typography variant="body2" color="text.secondary">Opening date: {formatDate(account.opening_date)}</Typography>
         {account.description && <Typography sx={{ overflowWrap: 'anywhere' }}>{account.description}</Typography>}
       </Stack>}
     />}

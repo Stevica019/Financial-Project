@@ -4,6 +4,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 import Icon from './Icon'
 import { useAuth } from '../auth/useAuth'
 import { requestError } from '../api'
+import { useWorkspace } from '../workspace'
 
 const main = [['/', 'Overview'], ['/transactions', 'Transactions'], ['/accounts', 'Accounts'], ['/reports', 'Reports']]
 const groups = [
@@ -13,7 +14,9 @@ const groups = [
 
 export default function WorkspaceNavigation() {
   const [anchor, setAnchor] = useState(null)
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
+  const { openActivity } = useWorkspace()
+  const configured = Boolean(user?.currency && user?.timezone)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const theme = useTheme()
@@ -35,6 +38,7 @@ export default function WorkspaceNavigation() {
       className={`nav-link ${extraActive ? 'active' : ''}`} startIcon={compact ? <Icon name="menu" /> : undefined} endIcon={compact ? undefined : <Icon name="chevron" />}>
       {compact ? 'Menu' : 'More'}
     </Button>
+    {!compact && configured && <Button variant="contained" className="nav-add" startIcon={<Icon name="plus" />} onClick={() => openActivity()}>Add transaction</Button>}
     <Menu id="workspace-menu" anchorEl={anchor} open={Boolean(anchor)} onClose={close} slotProps={{ list: { 'aria-labelledby': 'workspace-menu-button' }, paper: { sx: { minWidth: 230, mt: 1 } } }}>
       {compact && <ListSubheader>Workspace</ListSubheader>}
       {compact && main.map(([to, label]) => <MenuItem component={NavLink} key={to} to={to} end={to === '/'} onClick={close} selected={pathname === to}>{label}</MenuItem>)}

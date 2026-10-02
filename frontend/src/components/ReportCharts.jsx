@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { formatMoney } from '../format'
 import { Box, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, useMediaQuery, useTheme } from '@mui/material'
 
 const metrics = { income: 'Income', expenses: 'Expenses', net_cash_flow: 'Net cash flow' }
@@ -19,7 +20,7 @@ export default function ReportCharts({ data }) {
     <Paper component="section" aria-label="Cash flow trend" variant="outlined" sx={{ p: { xs: 2, sm: 3 }, minWidth: 0 }}>
       <Stack spacing={2}>
         <Typography component="h3" variant="h6">Cash flow trend</Typography>
-        <Typography color="text.secondary">Calendar months ending in {data.month}. Choose a bar for its exact value. Negative values extend below zero.</Typography>
+        <Typography color="text.secondary">Choose a bar to see its exact value.</Typography>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <TextField select label="Chart metric" value={metric} onChange={event => setMetric(event.target.value)} slotProps={{ select: { native: true } }}>
             {Object.entries(metrics).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
@@ -38,9 +39,9 @@ export default function ReportCharts({ data }) {
                 const height = Math.abs(value) / maximum * 110
                 const width = (chartWidth - 40) / trend.length
                 const x = 30 + index * width
-                return <g key={row.month} role="button" tabIndex={0} aria-label={`${row.month}: ${metrics[metric]} ${data.currency} ${row[metric]}`} aria-pressed={selected === row.month}
+                return <g key={row.month} role="button" tabIndex={0} aria-label={`${row.month}: ${metrics[metric]} ${formatMoney(row[metric], data.currency)}`} aria-pressed={selected === row.month}
                   onClick={() => setSelected(row.month)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setSelected(row.month) } }} style={{ cursor: 'pointer' }}>
-                  <title>{row.month}: {data.currency} {row[metric]}</title>
+                  <title>{row.month}: {formatMoney(row[metric], data.currency)}</title>
                   <rect x={x} y="15" width={width - 5} height="239" fill={selected === row.month ? theme.palette.action.selected : 'transparent'} rx="4" />
                   <rect x={x + 6} y={value < 0 ? 135 : 135 - height} width={width - 17} height={Math.max(2, height)} rx="2" fill={value < 0 ? theme.palette.error.main : colors[metric]} />
                   <text x={x + width / 2 - 3} y="275" textAnchor="middle" fill={theme.palette.text.secondary} fontSize="12">{row.month.slice(5)}</text>
@@ -48,7 +49,7 @@ export default function ReportCharts({ data }) {
               })}
             </svg>
           </Box>
-          <Typography role="status">{chosen ? `${chosen.month}: ${metrics[metric]} ${data.currency} ${chosen[metric]}` : `${trend[0].month} to ${trend.at(-1).month} · Scale: ${data.currency} ${maximum.toFixed(2)} above/below zero`}</Typography>
+          <Typography role="status">{chosen ? `${chosen.month}: ${metrics[metric]} ${formatMoney(chosen[metric], data.currency)}` : `${trend[0].month} to ${trend.at(-1).month} · Scale: ${formatMoney(maximum.toFixed(2), data.currency)} above/below zero`}</Typography>
           <details><summary>View chart data</summary>
             <TableContainer tabIndex={0} role="region" aria-label="Monthly chart data"><Table size="small">
               <TableHead><TableRow><TableCell>Month</TableCell>{Object.values(metrics).map(label => <TableCell key={label}>{label} ({data.currency})</TableCell>)}</TableRow></TableHead>
@@ -64,7 +65,7 @@ export default function ReportCharts({ data }) {
         {data.spending_by_category.length === 0 ? <Typography>No spending to chart this month.</Typography> : data.spending_by_category.map(category => {
           const share = total > 0 ? Number(category.amount) / total * 100 : 0
           return <Stack key={category.category_id} spacing={0.5}>
-            <Typography sx={{ overflowWrap: 'anywhere' }}>{category.name} · {data.currency} {category.amount} · {share.toFixed(1)}%</Typography>
+            <Typography sx={{ overflowWrap: 'anywhere' }}>{category.name} · {formatMoney(category.amount, data.currency)} · {share.toFixed(1)}%</Typography>
             <Box aria-hidden="true" sx={{ height: 12, bgcolor: 'action.hover', borderRadius: 1 }}><Box sx={{ height: '100%', width: `${Math.min(100, share)}%`, bgcolor: 'primary.main', borderRadius: 1 }} /></Box>
           </Stack>
         })}

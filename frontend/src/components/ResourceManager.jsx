@@ -37,7 +37,19 @@ function Editor({ noun, fields, initialValues, onClose, onSave, editing }) {
   </Dialog>
 }
 
-export default function ResourceManager({ title, noun, endpoint, writeEndpoint = endpoint, fields, defaults, details, archivable = false, archiveLabels = ['Archive', 'Unarchive'], onSaved, introduction, browseFields, recordConfig, layout = 'list' }) {
+function groupRows(records, groupBy) {
+  const groups = []
+  for (const record of records) {
+    const label = groupBy ? groupBy(record) : ''
+    if (groups.at(-1)?.label === label) groups.at(-1).records.push(record)
+    else groups.push({ label, records: [record] })
+  }
+  return groups
+}
+
+// layout="rows" renders compact clickable rows via `row`; clicking a row opens the editor, which owns deletion.
+// `editor` replaces the generic field-based dialog: ({ record, onClose, onSaved, onDelete }) => element.
+export default function ResourceManager({ title, noun, endpoint, writeEndpoint = endpoint, fields, defaults, details, archivable = false, archiveLabels = ['Archive', 'Unarchive'], onSaved, introduction, browseFields, recordConfig, layout = 'list', row, groupBy, editor: renderEditor, deleteNote }) {
   const [filters, setFilters] = useState({})
   const [page, setPage] = useState(1)
   const query = new URLSearchParams({ ...filters, page })
@@ -57,10 +69,15 @@ export default function ResourceManager({ title, noun, endpoint, writeEndpoint =
   async function save(values) {
     if (editor.id) await api.put(`${editorConfig.endpoint}/${editor.id}`, values)
     else await api.post(editorConfig.endpoint, values)
+    saved()
+  }
+  function saved() {
     onSaved?.()
     setEditor(null)
     remote.reload()
   }
+  const records = remote.data?.data ?? []
+  const grouped = Boolean(groupBy) && (!filters.sort || filters.sort === 'date')
   async function archive(record) {
     setBusy(true); setError('')
     try {
@@ -91,13 +108,20 @@ export default function ResourceManager({ title, noun, endpoint, writeEndpoint =
       <Typography component="h1" variant="h5">{title}</Typography>
       <Button variant="contained" startIcon={<Icon name="plus" />} disabled={busy || remote.loading || Boolean(remote.error)} onClick={() => { setError(''); setEditor({}) }}>Add {noun}</Button>
     </Stack>
-    <Typography color="text.secondary">{introduction}</Typography>
+    {introduction && <Typography color="text.secondary">{introduction}</Typography>}
     {browseFields && <BrowseControls fields={browseFields} onApply={applyFilters} />}
     {browseFields && <CsvExport filters={filters} scope={endpoint === '/transactions' ? 'transactions' : endpoint === '/transfers' ? 'transfers' : 'history'} accountId={endpoint.startsWith('/accounts/') ? endpoint.split('/')[2] : undefined} />}
     {error && !deleting && <Alert severity="error">{error}</Alert>}
     <RemoteState remote={remote}>
       {remote.data?.data.length === 0 && <Paper variant="outlined" sx={{ p: 3 }}><Typography>{browseFields ? 'No activity matches these filters.' : `No ${title.toLowerCase()} yet. Add your first ${noun} to get started.`}</Typography></Paper>}
-      <Box className={layout === 'grid' ? 'resource-grid' : 'resource-list'}>
+      {layout === 'rows' ? records.length > 0 && <Paper variant="outlined" className="activity-list">
+        {groupRows(records, grouped ? groupBy : null).map((group, index) => <Box key={index}>
+          {group.label && <Typography component="h2" className="activity-group">{group.label}</Typography>}
+          {group.records.map(record => <Box component="article" key={`${record.kind ?? noun}-${record.id}`} aria-label={recordName(record)}>
+            {row(record, { grouped, open: () => { setError(''); setEditor(record) } })}
+          </Box>)}
+        </Box>)}
+      </Paper> : <Box className={layout === 'grid' ? 'resource-grid' : 'resource-list'}>
         {remote.data?.data.map(record => <Paper className="resource-card" key={`${record.kind ?? noun}-${record.id}`} component="article" aria-label={recordName(record)} variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
           <Stack spacing={2} className="resource-card-content">
             <Typography component="h3" variant="h6" sx={{ overflowWrap: 'anywhere' }}>{recordName(record)}</Typography>
@@ -109,19 +133,21 @@ export default function ResourceManager({ title, noun, endpoint, writeEndpoint =
             </Stack>
           </Stack>
         </Paper>)}
-      </Box>
+      </Box>}
       {browseFields && remote.data?.meta && <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
         <Typography role="status">{remote.data.meta.total} results · Page {remote.data.meta.current_page} of {remote.data.meta.last_page}</Typography>
         <Button disabled={page <= 1} onClick={() => setPage(current => current - 1)}>Previous page</Button>
         <Button disabled={page >= remote.data.meta.last_page} onClick={() => setPage(current => current + 1)}>Next page</Button>
       </Stack>}
     </RemoteState>
-    {editor && <Editor noun={editorConfig.noun} fields={editorConfig.fields} initialValues={{ ...editorConfig.defaults, ...editor }} editing={Boolean(editor.id)} onClose={() => setEditor(null)} onSave={save} />}
+    {editor && (renderEditor
+      ? renderEditor({ record: editor, onClose: () => setEditor(null), onSaved: saved, onDelete: () => { setEditor(null); setDeleting(editor) } })
+      : <Editor noun={editorConfig.noun} fields={editorConfig.fields} initialValues={{ ...editorConfig.defaults, ...editor }} editing={Boolean(editor.id)} onClose={() => setEditor(null)} onSave={save} />)}
     <Dialog open={Boolean(deleting)} onClose={busy ? undefined : () => { setDeleting(null); setError('') }} aria-labelledby="delete-title">
       <DialogTitle id="delete-title">Delete {deleteConfig.noun}?</DialogTitle>
       <DialogContent>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-        <Typography>Delete "{recordName(deleting)}"? This cannot be undone.</Typography>
+        <Typography>Delete "{recordName(deleting)}"? This cannot be undone.{deleteNote ? ` ${deleteNote}` : ''}</Typography>
       </DialogContent>
       <DialogActions>
         <Button disabled={busy} onClick={() => { setDeleting(null); setError('') }}>Cancel</Button>

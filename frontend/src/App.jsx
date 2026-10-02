@@ -16,9 +16,12 @@ import Reports from './pages/Reports'
 import CsvImport from './pages/CsvImport'
 import Appearance from './Appearance'
 import WorkspaceNavigation from './components/WorkspaceNavigation'
+import WorkspaceProvider from './WorkspaceProvider'
+import QuickAdd from './components/QuickAdd'
 
 export default function App() {
   const { status, user, retry } = useAuth()
+  const configured = Boolean(user?.currency && user?.timezone)
   let content
   if (status === 'checking') {
     content = <Stack role="status" spacing={2} sx={{ alignItems: 'center' }}><CircularProgress aria-label="Checking your session" /><Typography>Loading your workspace…</Typography></Stack>
@@ -26,7 +29,6 @@ export default function App() {
     content = <Alert severity="error" action={<Button color="inherit" onClick={retry}>Try again</Button>}>Unable to check your session. Please try again.</Alert>
   } else {
     const signedIn = status === 'authenticated'
-    const configured = Boolean(user?.currency && user?.timezone)
     content = <Routes>
       <Route path="/login" element={signedIn ? <Navigate to="/" replace /> : <AuthPage key="login" />} />
       <Route path="/register" element={signedIn ? <Navigate to="/" replace /> : <AuthPage key="register" register />} />
@@ -47,7 +49,8 @@ export default function App() {
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   }
-  return <Appearance navigation={status === 'authenticated' ? <WorkspaceNavigation /> : undefined}>
+  return <WorkspaceProvider><Appearance navigation={status === 'authenticated' ? <WorkspaceNavigation /> : undefined}>
       <Box component="main" id="main-content" tabIndex={-1} className={`main-content ${status === 'authenticated' ? 'workspace-content' : 'guest-content'}`}>{content}</Box>
-  </Appearance>
+      {status === 'authenticated' && configured && <QuickAdd />}
+  </Appearance></WorkspaceProvider>
 }

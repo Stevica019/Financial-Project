@@ -1,6 +1,6 @@
 # UX improvement plan
 
-Created: 2026-10-02. Status: proposed, not started.
+Created: 2026-10-02. Status: Phase 1 done (2026-10-02) except the items left unchecked below. Phases 2 and 3 not started.
 
 This plan makes the frontend faster and easier to use day to day. The visual style already works; this is about flow and structure. It comes from a review of the frontend code, not from user testing or clicking through the running app, so check each point in the browser before changing it.
 
@@ -22,28 +22,34 @@ The UI is organized around database tables instead of user tasks. Almost every p
 Start here. None of these items need backend changes.
 
 ### 1.1 Quick add for transactions
-- [ ] Add a global **"+ Add"** button in the header, and a floating button on mobile. It opens the transaction dialog directly from any page.
-- [ ] Point the Overview hero buttons at the dialog. They currently only go to `/transactions` and `/transfers`.
-- [ ] Put an **Expense / Income / Transfer** toggle at the top of the dialog in place of the "Entry type" select. Transfer switches the dialog to the source/destination account fields from `transferFields` in [activityFields.js](frontend/src/components/activityFields.js).
-- [ ] Reorder the fields: amount first (autofocused), then category, account, date, description, notes.
-- [ ] Default the account to the last one used (remembered per browser) and the date to today. Use `inputMode="decimal"` and a currency prefix on the amount field.
+- [x] Add a global **"+ Add"** button in the header, and a floating button on mobile. It opens the transaction dialog directly from any page.
+- [x] Point the Overview hero buttons at the dialog. They currently only go to `/transactions` and `/transfers`.
+- [x] Put an **Expense / Income / Transfer** toggle at the top of the dialog in place of the "Entry type" select. Transfer switches the dialog to From/To account fields. Implemented in [ActivityEditor.jsx](frontend/src/components/ActivityEditor.jsx), used by quick add ([QuickAdd.jsx](frontend/src/components/QuickAdd.jsx)), Transactions, account history and Transfers.
+- [x] Reorder the fields: amount first (autofocused), then category, account, date, description, notes.
+  - Done as amount | date, category | account, description, notes (two columns on wider screens). The amount is focused once the dialog has opened, through the transition's `onEntered`; plain `autoFocus` loses to the dialog's own focus handling.
+- [x] Default the account to the last one used (remembered per browser) and the date to today. Use `inputMode="decimal"` and a currency prefix on the amount field.
 - [ ] Consider making description optional and falling back to the category name. **This needs a backend validation change.** Skip it if you want to stay frontend-only.
-- [ ] Rename "entry" to "transaction" in the UI copy ("Add transaction", "Save transaction").
+  - Not done: description is still required.
+- [x] Rename "entry" to "transaction" in the UI copy ("Add transaction", "Save transaction").
 
 Done when you can record an expense from the Overview with one click to open the dialog, an amount, a category and Enter.
 
 ### 1.2 Lists as rows, with proper money formatting
-- [ ] Add a shared `formatMoney(amount, currency)` helper built on `Intl.NumberFormat`. The API returns amounts as decimal strings, so pass the string straight to `format()` and never do arithmetic on money in JS. Use it everywhere amounts appear: Overview, accounts, budgets, goals, reports and transfers.
-- [ ] Show expenses as `−€25.00` in the error/red color and income as `+€1,250.50` in the success/green color. Transfers stay neutral, with in/out direction in account history.
-- [ ] Replace the card list in `ResourceManager` with compact rows for activity: date · description · category chip · account · amount (right-aligned). Group rows under day headers ("Today", "Yesterday", "Sep 28").
-- [ ] Make the whole row clickable to edit. Move Delete into the edit dialog, or into a "⋯" menu on the row.
-- [ ] Optional: replace the delete confirmation with an "Undo" Snackbar.
-- [ ] Keep cards only where they suit the content (Categories grid, Goals).
+- [x] Add a shared `formatMoney(amount, currency)` helper built on `Intl.NumberFormat`. The API returns amounts as decimal strings, so pass the string straight to `format()` and never do arithmetic on money in JS. Use it everywhere amounts appear: Overview, accounts, budgets, goals, reports and transfers.
+  - Done in [format.js](frontend/src/format.js) (`formatMoney`, `formatFlow`, plus date helpers). The locale is fixed to `en-US` to match the English UI and keep tests deterministic. The CSV import preview table still shows raw values.
+- [x] Show expenses as `−€25.00` in the error/red color and income as `+€1,250.50` in the success/green color. Transfers stay neutral, with in/out direction in account history.
+- [x] Replace the card list in `ResourceManager` with compact rows for activity: date · description · category chip · account · amount (right-aligned). Group rows under day headers ("Today", "Yesterday", "Sep 28").
+  - Done with `layout="rows"`, `row` and `groupBy` props on `ResourceManager` and the [ActivityRow](frontend/src/components/ActivityRow.jsx) component. Day headers appear only when sorting by date. The Overview's recent activity uses the same rows, and clicking one opens the editor.
+- [x] Make the whole row clickable to edit. Move Delete into the edit dialog, or into a "⋯" menu on the row.
+- [ ] Optional, not done: replace the delete confirmation with an "Undo" Snackbar.
+- [x] Keep cards only where they suit the content (Categories grid, Goals).
 
 ### 1.3 Cut the explanatory text
-- [ ] Reduce each page `introduction` to one short sentence at most. Today the longest are on Recurring, Savings goals, Transfers, Transactions and CSV import.
-- [ ] Move individual rules into the relevant field `hint` or an ⓘ tooltip. For example, "Pausing skips dates until resumed" belongs next to the Pause action.
-- [ ] Overview: remove the paragraph under the summary cards. Move the month picker into the "This month" section it actually controls, so it no longer needs explaining.
+- [x] Reduce each page `introduction` to one short sentence at most. Today the longest are on Recurring, Savings goals, Transfers, Transactions and CSV import.
+  - CSV import text is untouched: it explains the numeric ID columns the import still needs. Rework it together with the CSV item in Phase 3.
+- [x] Move individual rules into the relevant field `hint` or an ⓘ tooltip. For example, "Pausing skips dates until resumed" belongs next to the Pause action.
+- [x] Overview: remove the paragraph under the summary cards. Move the month picker into the "This month" section it actually controls, so it no longer needs explaining.
+  - The Overview's Refresh button is still there; it goes with the Phase 3 Overview item.
 
 ## Phase 2: navigation and filtering
 
@@ -105,6 +111,8 @@ There are currently 11 destinations, 7 of them plus Sign out hidden behind "More
 - [ ] Give every empty state a primary button ("Add your first account"), not just text.
 
 ## Notes for whoever implements this
+
+- **Workspace refresh:** `WorkspaceProvider` keeps a `revision` counter. `useRemote` refetches when it changes, keeping the current data on screen while it loads. Call `notifyChange()` from `useWorkspace()` after any save that other visible data depends on. Quick add already does this.
 
 - **Tests depend on visible labels.** Unit tests in `frontend/src/*.test.jsx` and Playwright specs in `frontend/e2e/` find elements by role and name: "More", "Export CSV", "Save goal", "Delete category", "Confirm import" and others. Renaming copy or moving actions will break them, so update tests in the same change. Test commands are in [README.md](README.md).
 - **Keep accessibility intact.** The current UI has good ARIA labels, landmarks and keyboard support (skip link, labelled regions). Clickable rows must stay keyboard-reachable, and colored amounts must keep their +/− sign, because color alone is not enough.

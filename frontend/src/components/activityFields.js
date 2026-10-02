@@ -13,14 +13,3 @@ export function browseFields(accounts, categories, { history = false, transfers 
     { name: 'amount_max', label: 'Maximum amount' },
   ]
 }
-
-export function transferFields(accounts, currency) {
-  return (_values, initial) => [
-    ...[['source_account_id', 'Source account'], ['destination_account_id', 'Destination account']].map(([name, label]) => ({
-      name, label, options: [{ value: '', label: 'Choose an account' }, ...accounts.filter(a => a.is_active || (initial.id && a.id === initial[name])).map(a => ({ value: a.id, label: `${a.name}${a.is_active ? '' : ' (archived)'}` }))],
-    })),
-    { name: 'amount', label: `Amount (${currency})`, hint: 'Enter a positive amount, for example 25.50.' },
-    { name: 'date', label: 'Activity date', type: 'date' },
-    { name: 'description', label: 'Description', required: false },
-  ]
-}

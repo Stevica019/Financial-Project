@@ -52,16 +52,16 @@ test('export retains filters, omits pagination and allows retry without download
 test('chart supports keyboard selection, metric and period changes, and exact accessible values', async () => {
   const trend = Array.from({ length: 12 }, (_, index) => ({ month: `2024-${String(index + 1).padStart(2, '0')}`, income: '0.00', expenses: '1.23', net_cash_flow: '-1.23' }))
   render(<ReportCharts data={{ month: '2024-12', currency: 'EUR', trend, monthly: { expenses: '1.23' }, spending_by_category: [{ category_id: 1, name: 'Food', amount: '1.23' }] }} />)
-  const bar = screen.getByRole('button', { name: '2024-12: Net cash flow EUR -1.23' })
+  const bar = screen.getByRole('button', { name: '2024-12: Net cash flow -€1.23' })
   bar.focus(); await userEvent.keyboard('{Enter}')
-  expect(screen.getByRole('status')).toHaveTextContent('2024-12: Net cash flow EUR -1.23')
+  expect(screen.getByRole('status')).toHaveTextContent('2024-12: Net cash flow -€1.23')
   await userEvent.selectOptions(screen.getByLabelText('Chart metric'), 'expenses')
-  expect(screen.getByRole('status')).toHaveTextContent('Expenses EUR 1.23')
+  expect(screen.getByRole('status')).toHaveTextContent('Expenses €1.23')
   await userEvent.selectOptions(screen.getByLabelText('Chart period'), '6')
   expect(screen.getAllByRole('button')).toHaveLength(6)
   await userEvent.click(screen.getByText('View chart data'))
   expect(within(screen.getByRole('region', { name: 'Monthly chart data' })).getAllByRole('row')).toHaveLength(7)
-  expect(screen.getByText('Food · EUR 1.23 · 100.0%')).toBeVisible()
+  expect(screen.getByText('Food · €1.23 · 100.0%')).toBeVisible()
 })
 
 test('appearance selection persists across remounts', async () => {

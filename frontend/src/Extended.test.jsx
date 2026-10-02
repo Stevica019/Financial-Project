@@ -18,14 +18,14 @@ test('budget month changes hide stale progress and failed loads can be retried',
     return { data: { data: [{ id: 1, name: 'Food', amount: '10.00', spent: '12.01', remaining: '-2.01', percentage: 120.1 }] } }
   })
   render(<Budgets />)
-  expect(await screen.findByText(/Remaining: EUR -2.01/)).toBeVisible()
+  expect(await screen.findByText(/Remaining: -€2.01/)).toBeVisible()
   expect(screen.getByRole('progressbar', { name: 'Food budget usage' })).toHaveAttribute('aria-valuenow', '100')
   fireEvent.change(screen.getByLabelText('Budget month'), { target: { value: '2026-02' } })
   expect(await screen.findByRole('alert')).toHaveTextContent('Unable to connect')
   expect(screen.queryByText(/Remaining:/)).not.toBeInTheDocument()
   fail = false
   await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
-  expect(await screen.findByText(/Remaining: EUR -2.01/)).toBeVisible()
+  expect(await screen.findByText(/Remaining: -€2.01/)).toBeVisible()
 })
 
 test('failed pause keeps the active rule visible and a retry updates its status', async () => {
@@ -40,7 +40,7 @@ test('failed pause keeps the active rule visible and a retry updates its status'
   const rule = await screen.findByRole('article', { name: 'Rent' })
   await userEvent.click(within(rule).getByRole('button', { name: 'Pause' }))
   expect(await screen.findByRole('alert')).toHaveTextContent('Choose an active account to run this rule.')
-  expect(rule).toHaveTextContent('Next execution: 2026-04-01')
+  expect(rule).toHaveTextContent('Next due: Apr 1, 2026')
   await userEvent.click(within(rule).getByRole('button', { name: 'Pause' }))
   expect(await screen.findByRole('button', { name: 'Resume' })).toBeVisible()
   expect(api.patch).toHaveBeenLastCalledWith('/recurring-rules/1', { is_active: false })
