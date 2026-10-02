@@ -4,6 +4,8 @@ Last updated: 2026-09-08.
 
 Read this file first when resuming work, then [Project.md](Project.md) for requirements and financial rules, and [README.md](README.md) for setup and test commands. Inspect the current code and Git status before making changes.
 
+For the planned usability redesign, see [UX-PLAN.md](UX-PLAN.md).
+
 ## Current handoff
 
 - Latest committed checkpoint: `32bc67c` (savings goals and monthly reports). This session's optional features are uncommitted.
