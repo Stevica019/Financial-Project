@@ -1,6 +1,6 @@
 # UX improvement plan
 
-Created: 2026-10-02. Status: Phase 1 done (2026-10-02) except the items left unchecked below. Phase 2.1 navigation done (2026-10-05); 2.2 and Phase 3 not started.
+Created: 2026-10-02. Status: Phase 1 done (2026-10-02) except the items left unchecked below. Phase 2 done (2026-10-05). Phase 3 not started.
 
 This plan makes the frontend faster and easier to use day to day. The visual style already works; this is about flow and structure. It comes from a review of the frontend code, not from user testing or clicking through the running app, so check each point in the browser before changing it.
 
@@ -70,13 +70,20 @@ There were 11 destinations, 7 of them plus Sign out hidden behind "More" in [Wor
 - [x] The brand link in [Appearance.jsx](frontend/src/Appearance.jsx) is a plain `<a href="/">`, which causes a full page reload. Switch it to a router `Link`.
 
 ### 2.2 Search and filters
-[BrowseControls.jsx](frontend/src/components/BrowseControls.jsx) shows about 10 fields at once, and nothing applies until you press "Apply filters".
+[BrowseControls.jsx](frontend/src/components/BrowseControls.jsx) showed about 10 fields at once, and nothing applied until you pressed "Apply filters".
 
-- [ ] Make the search box live, with a debounce of about 300 ms.
-- [ ] Add a "Filters" button that reveals the account, category, type, date and amount fields.
-- [ ] Show active filters as removable chips (`Groceries ✕`).
-- [ ] Sort by clicking column headers. Remove the separate sort, direction and per-page selects.
-- [ ] Move "Export CSV" into a "⋯" menu on the list header.
+Done (2026-10-05). Covered by [BrowseControls.test.jsx](frontend/src/BrowseControls.test.jsx) and the first test in `e2e/browsing-transfers.spec.js`.
+
+- [x] Make the search box live, with a debounce of about 300 ms.
+  - Every filter applies on its own after the same 300 ms pause; there is no Apply button. While new results load, `useRemote(path, { keepPrevious: true })` keeps the previous list on screen with a thin progress bar instead of a spinner.
+- [x] Add a "Filters" button that reveals the account, category, type, date and amount fields.
+  - The button shows the number of active filters ("Filters · 2"). The panel is unmounted while closed, so its labels ("Account", "Category", "Type") don't clash with the transaction dialog's.
+- [x] Show active filters as removable chips (`Groceries ✕`).
+  - Chips are labelled by `chip` formatters in [activityFields.js](frontend/src/components/activityFields.js) ("From Feb 1", "Min €3.00"). Removing a chip or "Clear all" applies at once; "Clear all" also clears the search.
+- [x] Sort by clicking column headers. Remove the separate sort, direction and per-page selects.
+  - The list has Description / Date / Amount headers. A new column starts newest/largest first (Description A–Z); clicking it again reverses it. Day headers only show when sorting by date. Page size is now fixed at the API default of 20.
+- [x] Move "Export CSV" into a "⋯" menu on the list header.
+  - The "More actions" menu next to Filters. The export uses the current filters and sort. `downloadCsv()` in [CsvExport.jsx](frontend/src/components/CsvExport.jsx) is shared with the buttons on the Import & export page.
 
 ## Phase 3: page-level fixes
 

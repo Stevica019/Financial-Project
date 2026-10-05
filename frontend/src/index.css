@@ -133,6 +133,17 @@ summary { cursor: pointer; padding: 12px 0; }
 .activity-amount { flex-shrink: 0; font-weight: 650; white-space: nowrap; }
 .activity-amount.in { color: var(--positive); }
 .activity-amount.out { color: var(--negative); }
+.activity-columns { display: flex; align-items: center; gap: 20px; padding: 10px 20px 10px 70px; border-bottom: 1px solid var(--line); }
+.activity-columns .MuiTableSortLabel-root { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); border-radius: 6px; }
+.activity-columns .MuiTableSortLabel-root.Mui-active { color: var(--blue); }
+.activity-columns .MuiTableSortLabel-root.Mui-active .MuiTableSortLabel-icon { color: inherit; }
+.activity-columns .sort-description { margin-right: auto; }
+.browse-toolbar { display: flex; align-items: center; gap: 10px; }
+.browse-search.MuiFormControl-root { flex: 1 1 auto; min-width: 0; }
+.browse-filters-button.MuiButton-root { flex-shrink: 0; padding-block: 7px; }
+.filter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 16px; }
+.filter-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.list-updating.MuiLinearProgress-root { position: absolute; top: -14px; left: 0; right: 0; height: 3px; margin: 0; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 16px; }
 .form-grid-wide { grid-column: 1 / -1; }
 .quick-add-fab.MuiFab-root { position: fixed; right: 20px; bottom: 20px; z-index: 1050; }
@@ -221,6 +232,9 @@ summary { cursor: pointer; padding: 12px 0; }
   .form-grid { grid-template-columns: 1fr; }
   .activity-row.MuiButtonBase-root { padding-inline: 16px; gap: 12px; }
   .activity-group.MuiTypography-root { padding-inline: 16px; }
+  .activity-columns { padding-inline: 16px; gap: 12px; }
+  .activity-columns .MuiTableSortLabel-root { letter-spacing: 0.04em; }
+  .activity-columns .MuiTableSortLabel-root:not(.Mui-active) .MuiTableSortLabel-icon { display: none; }
   .resource-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr)); gap: 12px; }
   .resource-grid .resource-card { min-height: 176px; padding: 16px; }
   .resource-grid .resource-card-actions { gap: 4px; }

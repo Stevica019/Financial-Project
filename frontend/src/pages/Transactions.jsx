@@ -30,7 +30,7 @@ export default function Transactions() {
         tabs={!accountId && <ActivityTabs />}
         endpoint={accountId ? `/accounts/${accountId}/history` : '/activity'} writeEndpoint="/transactions"
         onSaved={accounts.refresh}
-        browseFields={browseFields(accounts.data.data, categories.data.data, { history: Boolean(accountId) })}
+        browseFields={browseFields(accounts.data.data, categories.data.data, { history: Boolean(accountId), currency: user.currency, today })}
         recordConfig={record => record?.kind === 'transfer' ? { noun: 'transfer', endpoint: '/transfers' } : {}}
         introduction={introduction}
         layout="rows"

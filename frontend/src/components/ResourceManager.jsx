@@ -1,12 +1,15 @@
-import { useState } from 'react'
-import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Paper, Stack, Typography } from '@mui/material'
+import { useCallback, useState } from 'react'
+import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, Paper, Stack, TableSortLabel, Typography } from '@mui/material'
 import { api, requestError } from '../api'
 import { useRemote } from '../useRemote'
 import FormField from './FormField'
 import RemoteState from './RemoteState'
 import BrowseControls from './BrowseControls'
-import CsvExport from './CsvExport'
+import { downloadCsv } from './CsvExport'
 import Icon from './Icon'
+
+const sortColumns = [['description', 'Description'], ['date', 'Date'], ['amount', 'Amount']]
+const firstDirection = column => column === 'description' ? 'asc' : 'desc'
 
 function Editor({ noun, fields, initialValues, onClose, onSave, editing }) {
   const [values, setValues] = useState(initialValues)
@@ -52,9 +55,12 @@ function groupRows(records, groupBy) {
 // `tabs` renders section navigation under the title, for pages that share a section title.
 export default function ResourceManager({ title, noun, plural = `${noun}s`, tabs, endpoint, writeEndpoint = endpoint, fields, defaults, details, archivable = false, archiveLabels = ['Archive', 'Unarchive'], onSaved, introduction, browseFields, recordConfig, layout = 'list', row, groupBy, editor: renderEditor, deleteNote }) {
   const [filters, setFilters] = useState({})
+  const [sort, setSort] = useState({ sort: 'date', direction: 'desc' })
   const [page, setPage] = useState(1)
-  const query = new URLSearchParams({ ...filters, page })
-  const remote = useRemote(browseFields ? `${endpoint}?${query}` : endpoint)
+  // Newest first is the API default, so it stays out of the URL.
+  const sortParams = sort.sort === 'date' && sort.direction === 'desc' ? {} : sort
+  const query = new URLSearchParams({ ...filters, ...sortParams, page })
+  const remote = useRemote(browseFields ? `${endpoint}?${query}` : endpoint, { keepPrevious: Boolean(browseFields) })
   const [editor, setEditor] = useState(null)
   const [deleting, setDeleting] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -63,10 +69,20 @@ export default function ResourceManager({ title, noun, plural = `${noun}s`, tabs
   const editorConfig = config(editor)
   const deleteConfig = config(deleting)
   const recordName = record => record?.name || record?.description || 'Transfer'
-  function applyFilters(values) {
-    setFilters(Object.fromEntries(Object.entries(values).filter(([, value]) => value !== '')))
+  const applyFilters = useCallback(values => {
+    setFilters(values)
+    setPage(1)
+  }, [])
+  // A new column starts in its natural order; clicking the current column reverses it.
+  function sortBy(column) {
+    setSort(current => current.sort === column ? { sort: column, direction: current.direction === 'asc' ? 'desc' : 'asc' } : { sort: column, direction: firstDirection(column) })
     setPage(1)
   }
+  const exportCsv = () => downloadCsv({
+    filters: { ...filters, ...sortParams },
+    scope: endpoint === '/transactions' ? 'transactions' : endpoint === '/transfers' ? 'transfers' : 'history',
+    accountId: endpoint.startsWith('/accounts/') ? endpoint.split('/')[2] : undefined,
+  })
   async function save(values) {
     if (editor.id) await api.put(`${editorConfig.endpoint}/${editor.id}`, values)
     else await api.post(editorConfig.endpoint, values)
@@ -78,7 +94,7 @@ export default function ResourceManager({ title, noun, plural = `${noun}s`, tabs
     remote.reload()
   }
   const records = remote.data?.data ?? []
-  const grouped = Boolean(groupBy) && (!filters.sort || filters.sort === 'date')
+  const grouped = Boolean(groupBy) && sort.sort === 'date'
   async function archive(record) {
     setBusy(true); setError('')
     try {
@@ -111,12 +127,19 @@ export default function ResourceManager({ title, noun, plural = `${noun}s`, tabs
     </Stack>
     {tabs}
     {introduction && <Typography color="text.secondary">{introduction}</Typography>}
-    {browseFields && <BrowseControls fields={browseFields} onApply={applyFilters} />}
-    {browseFields && <CsvExport filters={filters} scope={endpoint === '/transactions' ? 'transactions' : endpoint === '/transfers' ? 'transfers' : 'history'} accountId={endpoint.startsWith('/accounts/') ? endpoint.split('/')[2] : undefined} />}
+    {browseFields && <BrowseControls fields={browseFields} filters={filters} onChange={applyFilters} actions={[{ label: 'Export CSV', run: exportCsv }]} />}
     {error && !deleting && <Alert severity="error">{error}</Alert>}
+    <Stack spacing={3} sx={{ position: 'relative' }}>
     <RemoteState remote={remote}>
       {remote.data?.data.length === 0 && <Paper variant="outlined" sx={{ p: 3 }}><Typography>{browseFields ? 'No activity matches these filters.' : `No ${plural} yet. Add your first ${noun} to get started.`}</Typography></Paper>}
       {layout === 'rows' ? records.length > 0 && <Paper variant="outlined" className="activity-list">
+        {browseFields && <Box className="activity-columns" role="group" aria-label="Sort by">
+          {sortColumns.map(([column, label]) => {
+            const current = sort.sort === column
+            return <TableSortLabel key={column} className={`sort-${column}`} active={current} direction={current ? sort.direction : firstDirection(column)} onClick={() => sortBy(column)}
+              aria-label={current ? `${label}, sorted ${sort.direction === 'asc' ? 'ascending' : 'descending'}` : undefined}>{label}</TableSortLabel>
+          })}
+        </Box>}
         {groupRows(records, grouped ? groupBy : null).map((group, index) => <Box key={index}>
           {group.label && <Typography component="h2" className="activity-group">{group.label}</Typography>}
           {group.records.map(record => <Box component="article" key={`${record.kind ?? noun}-${record.id}`} aria-label={recordName(record)}>
@@ -142,6 +165,8 @@ export default function ResourceManager({ title, noun, plural = `${noun}s`, tabs
         <Button disabled={page >= remote.data.meta.last_page} onClick={() => setPage(current => current + 1)}>Next page</Button>
       </Stack>}
     </RemoteState>
+    {remote.updating && <LinearProgress aria-label="Updating results" className="list-updating" />}
+    </Stack>
     {editor && (renderEditor
       ? renderEditor({ record: editor, onClose: () => setEditor(null), onSaved: saved, onDelete: () => { setEditor(null); setDeleting(editor) } })
       : <Editor noun={editorConfig.noun} fields={editorConfig.fields} initialValues={{ ...editorConfig.defaults, ...editor }} editing={Boolean(editor.id)} onClose={() => setEditor(null)} onSave={save} />)}

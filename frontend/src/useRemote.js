@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { api, requestError } from './api'
 import { useWorkspace } from './workspace'
 
-export function useRemote(path) {
+// keepPrevious: while a new path loads, keep returning the previous data with `updating: true`,
+// so filtered lists don't flash a spinner on every change.
+export function useRemote(path, { keepPrevious = false } = {}) {
   // A workspace revision change (for example after a quick add) refetches without hiding current data.
   const { revision } = useWorkspace()
   const [attempt, setAttempt] = useState(0)
@@ -25,5 +27,7 @@ export function useRemote(path) {
     setAttempt(value => value + 1)
   }, [])
   const refresh = useCallback(() => setAttempt(value => value + 1), [])
-  return { ...(state.path === path ? state : { loading: true, data: null, error: '' }), reload, refresh }
+  if (state.path === path) return { ...state, updating: false, reload, refresh }
+  if (keepPrevious && state.data) return { ...state, updating: true, reload, refresh }
+  return { loading: true, data: null, error: '', updating: false, reload, refresh }
 }
