@@ -49,7 +49,7 @@ test('sets preferences, manages accounts, and customizes categories on a small s
   await page.getByRole('button', { name: 'Save preferences' }).click()
   await expect(page.getByText('Preferences saved.')).toBeVisible()
 
-  await navigateWorkspace(page, 'Categories')
+  await navigateWorkspace(page, 'Settings', 'Categories')
   await expect(page.getByRole('article', { name: 'Salary', exact: true })).toBeVisible()
   await expect(page.getByRole('article')).toHaveCount(11)
   await page.getByRole('button', { name: 'Add category' }).click()

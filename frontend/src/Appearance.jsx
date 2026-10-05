@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Box, CssBaseline, ThemeProvider, Typography, createTheme, useMediaQuery } from '@mui/material'
+import { Link } from 'react-router-dom'
 import Icon from './components/Icon'
 import { AppearanceContext } from './useAppearance'
 
-export default function Appearance({ children, navigation }) {
+// `actions` are the signed-in header controls; their presence also switches the shell to the workspace layout.
+export default function Appearance({ children, actions }) {
   const systemDark = useMediaQuery('(prefers-color-scheme: dark)')
   const [preference, setPreference] = useState(() => {
     try { const saved = localStorage.getItem('finance-appearance'); return ['light', 'dark', 'system'].includes(saved) ? saved : 'system' }
@@ -55,12 +57,12 @@ export default function Appearance({ children, navigation }) {
   }, [preference])
   return <AppearanceContext.Provider value={{ preference, setPreference }}><ThemeProvider theme={theme}>
     <CssBaseline enableColorScheme />
-    <Box className={`app-shell theme-${mode}`}>
+    <Box className={`app-shell theme-${mode}${actions ? ' workspace-shell' : ''}`}>
     <a className="skip-link" href="#main-content">Skip to content</a>
     <Box component="header" className="site-header">
       <Box className="header-inner">
-      <a className="brand" href="/" aria-label="Personal Finance home"><span className="brand-mark"><Icon name="chart" /></span><span>Personal<span className="brand-light">Finance</span><span className="brand-dot">.</span></span></a>
-      {navigation}
+      <Link className="brand" to="/" aria-label="Personal Finance home"><span className="brand-mark"><Icon name="chart" /></span><span>Personal<span className="brand-light">Finance</span><span className="brand-dot">.</span></span></Link>
+      {actions}
       </Box>
     </Box>
     {children}

@@ -1,5 +1,5 @@
 import { beforeEach, expect, test, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { api, authenticate } from './api'
@@ -58,7 +58,7 @@ test('restores a session and signs out', async () => {
   api.get.mockResolvedValue({ data: user })
   const browser = open('/login')
   expect(await screen.findByRole('heading', { name: 'Financial overview' })).toBeVisible()
-  await browser.click(screen.getByRole('button', { name: 'More', exact: true }))
+  await browser.click(screen.getByRole('button', { name: 'User menu' }))
   await browser.click(screen.getByRole('menuitem', { name: 'Sign out' }))
   expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeVisible()
   expect(api.post).toHaveBeenCalledWith('/logout')
@@ -68,11 +68,11 @@ test('preserves the workspace and offers an error if logout fails', async () => 
   api.get.mockResolvedValue({ data: user })
   api.post.mockRejectedValue(new Error('Offline'))
   const browser = open()
-  await browser.click(await screen.findByRole('button', { name: 'More', exact: true }))
+  await browser.click(await screen.findByRole('button', { name: 'User menu' }))
   await browser.click(screen.getByRole('menuitem', { name: 'Sign out' }))
   expect(await screen.findByRole('alert')).toHaveTextContent('Unable to connect')
   expect(screen.getByRole('heading', { name: 'Financial overview' })).toBeVisible()
-  await browser.click(screen.getByRole('button', { name: 'More', exact: true }))
+  await browser.click(screen.getByRole('button', { name: 'User menu' }))
   expect(screen.getByRole('menuitem', { name: 'Sign out' })).toBeEnabled()
 })
 
@@ -84,7 +84,7 @@ test('profile and appearance live in settings and the theme persists when return
   expect(screen.queryByText(user.email)).not.toBeInTheDocument()
   expect(screen.queryByLabelText('Appearance')).not.toBeInTheDocument()
   expect(screen.queryByText('Welcome, Alex')).not.toBeInTheDocument()
-  await browser.click(screen.getByRole('button', { name: 'More', exact: true }))
+  await browser.click(screen.getByRole('button', { name: 'User menu' }))
   await browser.click(screen.getByRole('menuitem', { name: 'Settings', exact: true }))
   expect(await screen.findByRole('region', { name: 'Profile' })).toHaveTextContent(user.name)
   expect(screen.getByRole('region', { name: 'Profile' })).toHaveTextContent(user.email)
@@ -93,6 +93,24 @@ test('profile and appearance live in settings and the theme persists when return
   await browser.click(screen.getByRole('link', { name: 'Overview', exact: true }))
   expect(screen.queryByLabelText('Appearance')).not.toBeInTheDocument()
   expect(document.querySelector('.app-shell')).toHaveClass('theme-dark')
+})
+
+test('groups pages into workspace sections and sends earlier links to their new place', async () => {
+  api.get.mockImplementation(path => Promise.resolve({ data: path === '/user' ? user
+    : path === '/settings' ? { user, today: '2026-10-05', currencies: ['EUR'], timezones: ['UTC'] }
+    : { data: [], meta: { total: 0, current_page: 1, last_page: 1 } } }))
+  const browser = open('/recurring')
+  const sections = await screen.findByRole('navigation', { name: 'Activity sections' })
+  expect(within(sections).getByRole('link', { name: 'Scheduled' })).toHaveAttribute('aria-current', 'page')
+  const workspace = screen.getByRole('navigation', { name: 'Workspace' })
+  expect(within(workspace).getAllByRole('link').map(link => link.textContent)).toEqual(['Overview', 'Activity', 'Accounts', 'Budgets', 'Goals', 'Reports', 'Settings'])
+  expect(within(workspace).getByRole('link', { name: 'Activity' })).toHaveAttribute('aria-current', 'page')
+  await browser.click(within(sections).getByRole('link', { name: 'All activity' }))
+  expect(await screen.findByText('No activity matches these filters.')).toBeVisible()
+  expect(api.get.mock.calls.map(([path]) => path)).toContain('/activity?page=1')
+  await browser.click(within(workspace).getByRole('link', { name: 'Settings' }))
+  await browser.click(within(await screen.findByRole('navigation', { name: 'Settings sections' })).getByRole('link', { name: 'Categories' }))
+  expect(await screen.findByText('No categories yet.', { exact: false })).toBeVisible()
 })
 
 test('retries an unavailable session check instead of claiming the user is logged out', async () => {

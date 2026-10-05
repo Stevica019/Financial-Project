@@ -22,7 +22,7 @@ test('records, corrects, and deletes activity with exact balances and protected 
   await page.getByLabel(/^Opening date/).fill('2026-01-01')
   await page.getByRole('button', { name: 'Save account' }).click()
   await expect(page.getByRole('article', { name: 'Wallet' })).toBeVisible()
-  await navigateWorkspace(page, 'Transactions')
+  await navigateWorkspace(page, 'Activity')
   await page.getByRole('main').getByRole('button', { name: 'Add transaction' }).click()
   const editor = page.getByRole('dialog', { name: 'Add transaction' })
   await expect(page.getByLabel(/^Amount/)).toBeFocused()

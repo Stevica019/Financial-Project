@@ -1,6 +1,6 @@
 # UX improvement plan
 
-Created: 2026-10-02. Status: Phase 1 done (2026-10-02) except the items left unchecked below. Phases 2 and 3 not started.
+Created: 2026-10-02. Status: Phase 1 done (2026-10-02) except the items left unchecked below. Phase 2.1 navigation done (2026-10-05); 2.2 and Phase 3 not started.
 
 This plan makes the frontend faster and easier to use day to day. The visual style already works; this is about flow and structure. It comes from a review of the frontend code, not from user testing or clicking through the running app, so check each point in the browser before changing it.
 
@@ -54,15 +54,20 @@ Done when you can record an expense from the Overview with one click to open the
 ## Phase 2: navigation and filtering
 
 ### 2.1 Navigation
-There are currently 11 destinations, 7 of them plus Sign out hidden behind "More" in [WorkspaceNavigation.jsx](frontend/src/components/WorkspaceNavigation.jsx).
+There were 11 destinations, 7 of them plus Sign out hidden behind "More" in [WorkspaceNavigation.jsx](frontend/src/components/WorkspaceNavigation.jsx).
 
-- [ ] New structure:
+- [x] New structure:
   - **Overview · Activity · Accounts · Budgets · Goals · Reports**
   - **Activity** = transactions and transfers in one list, plus a "Scheduled" tab for recurring rules.
   - **Settings** = preferences, categories and CSV import/export.
-- [ ] Use a left sidebar on desktop and a bottom navigation bar on mobile. Put Sign out in a user/avatar menu.
-- [ ] Keep the old routes as redirects (`/transfers`, `/recurring`, `/categories`, `/import`) so existing links and tests can be migrated gradually.
-- [ ] The brand link in [Appearance.jsx](frontend/src/Appearance.jsx) is a plain `<a href="/">`, which causes a full page reload. Switch it to a router `Link`.
+  - Done (2026-10-05). Activity (`/activity`) uses a new `GET /api/activity` endpoint, which is the existing combined account-history query without the account limit. Its filters now include account and a Transfer type, and its "Export CSV" includes transfers. The Transfers page is gone: transfers are added from the Transfer toggle in the transaction dialog.
+  - Sections are separate routes shown as tabs ([SectionTabs.jsx](frontend/src/components/SectionTabs.jsx)): `/activity` and `/activity/scheduled`; `/settings`, `/settings/categories` and `/settings/import`. Pages in a section share its title ("Activity", "Settings"). `ResourceManager` takes a `tabs` element for this and a `plural` for its empty state.
+  - The Settings tabs only appear once preferences are saved, because categories and import need a currency.
+- [x] Use a left sidebar on desktop and a bottom navigation bar on mobile. Put Sign out in a user/avatar menu.
+  - One `nav "Workspace"` landmark that CSS turns into a sidebar (≥900px) or a fixed bottom bar. The bottom bar holds the six main pages; Settings is in the sidebar on desktop and in the user menu (avatar, top right) everywhere. The user menu shows name and email, Settings and Sign out ([WorkspaceHeader.jsx](frontend/src/components/WorkspaceHeader.jsx)). The floating add button sits above the bottom bar.
+- [x] Keep the old routes as redirects (`/transfers`, `/recurring`, `/categories`, `/import`) so existing links and tests can be migrated gradually.
+  - Also `/transactions` → `/activity`. Unit and Playwright tests have been migrated to the new names. The e2e helper `navigateWorkspace(page, name, section)` opens a section tab, for example `('Settings', 'Categories')`.
+- [x] The brand link in [Appearance.jsx](frontend/src/Appearance.jsx) is a plain `<a href="/">`, which causes a full page reload. Switch it to a router `Link`.
 
 ### 2.2 Search and filters
 [BrowseControls.jsx](frontend/src/components/BrowseControls.jsx) shows about 10 fields at once, and nothing applies until you press "Apply filters".
@@ -114,7 +119,7 @@ There are currently 11 destinations, 7 of them plus Sign out hidden behind "More
 
 - **Workspace refresh:** `WorkspaceProvider` keeps a `revision` counter. `useRemote` refetches when it changes, keeping the current data on screen while it loads. Call `notifyChange()` from `useWorkspace()` after any save that other visible data depends on. Quick add already does this.
 
-- **Tests depend on visible labels.** Unit tests in `frontend/src/*.test.jsx` and Playwright specs in `frontend/e2e/` find elements by role and name: "More", "Export CSV", "Save goal", "Delete category", "Confirm import" and others. Renaming copy or moving actions will break them, so update tests in the same change. Test commands are in [README.md](README.md).
+- **Tests depend on visible labels.** Unit tests in `frontend/src/*.test.jsx` and Playwright specs in `frontend/e2e/` find elements by role and name: "User menu", "Export CSV", "Save goal", "Delete category", "Confirm import" and others. Renaming copy or moving actions will break them, so update tests in the same change. Test commands are in [README.md](README.md).
 - **Keep accessibility intact.** The current UI has good ARIA labels, landmarks and keyboard support (skip link, labelled regions). Clickable rows must stay keyboard-reachable, and colored amounts must keep their +/− sign, because color alone is not enough.
 - **Money stays as strings.** Amounts are decimal strings from the API. Format them for display, and do any arithmetic on the backend.
 - Do one numbered item per change/PR where possible, and tick the boxes here as you go.

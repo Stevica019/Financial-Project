@@ -3,6 +3,7 @@ import { useAuth } from '../auth/useAuth'
 import { useRemote } from '../useRemote'
 import RemoteState from '../components/RemoteState'
 import ResourceManager from '../components/ResourceManager'
+import { ActivityTabs } from '../components/SectionTabs'
 import { formatDate, formatMoney } from '../format'
 
 export default function RecurringRules() {
@@ -11,7 +12,7 @@ export default function RecurringRules() {
   const categories = useRemote('/categories')
   const settings = useRemote('/settings')
   return <RemoteState remote={accounts}><RemoteState remote={categories}><RemoteState remote={settings}>
-    {accounts.data && categories.data && settings.data && <ResourceManager title="Recurring transactions" noun="rule" endpoint="/recurring-rules" archivable archiveLabels={['Pause', 'Resume']}
+    {accounts.data && categories.data && settings.data && <ResourceManager title="Activity" noun="rule" plural="scheduled transactions" tabs={<ActivityTabs />} endpoint="/recurring-rules" archivable archiveLabels={['Pause', 'Resume']}
       introduction="Income and expenses that repeat on a schedule. Pause a rule to skip its due dates until you resume it."
       deleteNote="Entries it already created are kept."
       defaults={{ type: 'expense', account_id: '', category_id: '', amount: '', description: '', notes: '', frequency: 'monthly', start_date: settings.data.today, end_date: '' }}

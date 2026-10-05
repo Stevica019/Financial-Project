@@ -1,5 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import { api } from './api'
 import CsvImport from './pages/CsvImport'
@@ -18,7 +19,7 @@ test('CSV errors preserve the file for retry and importing requires a preview an
     .mockResolvedValueOnce({ data: { token: 'preview-token', total: 1, duplicates: 0, rows: [{ type: 'expense', date: '2024-01-01', amount: '1.00', currency: 'EUR', account_id: '1', category_id: '2', description: 'Food' }] } })
     .mockRejectedValueOnce(new Error('Offline'))
     .mockResolvedValueOnce({ data: { imported: 1, skipped: 0 } })
-  render(<CsvImport />)
+  render(<MemoryRouter><CsvImport /></MemoryRouter>)
   expect(screen.queryByRole('button', { name: 'Confirm import' })).not.toBeInTheDocument()
   await userEvent.upload(screen.getByLabelText('CSV file'), new File(['csv'], 'activity.csv', { type: 'text/csv' }))
   await userEvent.click(screen.getByRole('button', { name: 'Preview import' }))
@@ -65,10 +66,10 @@ test('chart supports keyboard selection, metric and period changes, and exact ac
 })
 
 test('appearance selection persists across remounts', async () => {
-  const { unmount } = render(<Appearance><AppearanceControl /></Appearance>)
+  const { unmount } = render(<MemoryRouter><Appearance><AppearanceControl /></Appearance></MemoryRouter>)
   fireEvent.change(screen.getByLabelText('Appearance'), { target: { value: 'dark' } })
   expect(localStorage.getItem('finance-appearance')).toBe('dark')
   unmount()
-  render(<Appearance><AppearanceControl /></Appearance>)
+  render(<MemoryRouter><Appearance><AppearanceControl /></Appearance></MemoryRouter>)
   expect(screen.getByLabelText('Appearance')).toHaveValue('dark')
 })

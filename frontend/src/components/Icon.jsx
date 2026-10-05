@@ -12,6 +12,9 @@ const paths = {
   plus: 'M12 5v14 M5 12h14',
   income: 'M7 17 17 7 M7 7h10v10',
   expense: 'M7 7l10 10 M7 17h10V7',
+  budget: 'M12 3a9 9 0 1 0 9 9h-9z M15 3.5A9 9 0 0 1 20.5 9H15z',
+  settings: 'M4 6h9 M17 6h3 M4 12h3 M11 12h9 M4 18h11 M19 18h1 M15 4v4 M9 10v4 M17 16v4',
+  logout: 'M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3 M16 17l5-5-5-5 M21 12H9',
   refresh: 'M4 10a8 8 0 0 1 13.65-4.65L21 9 M21 3v6h-6 M20 14a8 8 0 0 1-13.65 4.65L3 15 M3 21v-6h6',
 }
 

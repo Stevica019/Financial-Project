@@ -28,7 +28,7 @@ test('manual goals and monthly comparisons work on mobile', async ({ page }) => 
       await write('transactions', { account_id: account.id, category_id: category.id, type: 'expense', amount, date, description: 'Food' })
     }
   })
-  await navigateWorkspace(page, 'Savings goals')
+  await navigateWorkspace(page, 'Goals')
   await page.getByRole('button', { name: 'Add goal' }).click()
   await page.getByLabel(/^Goal name/).fill('Holiday')
   await page.getByLabel(/^Target amount/).fill('0')
@@ -48,7 +48,7 @@ test('manual goals and monthly comparisons work on mobile', async ({ page }) => 
   await navigateWorkspace(page, 'Overview')
   await expect(page.getByRole('region', { name: 'Active savings goals', exact: true })).toContainText('Holiday')
   await expect(page.getByRole('region', { name: 'Total balance', exact: true })).toContainText('€69.98')
-  await navigateWorkspace(page, 'Savings goals')
+  await navigateWorkspace(page, 'Goals')
   for (const status of ['completed', 'cancelled', 'active']) {
     await goal.getByRole('button', { name: 'Edit' }).click()
     await page.getByLabel(/^Status/).selectOption(status)

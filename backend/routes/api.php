@@ -22,6 +22,7 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::middleware(['auth:sanctum', FinanceWriteLock::class])->group(function () {
+    Route::get('/activity', [TransactionController::class, 'activity']);
     Route::get('/activity/export', [CsvController::class, 'export']);
     Route::post('/activity/import/preview', [CsvController::class, 'preview'])->middleware('throttle:10,1');
     Route::post('/activity/import', [CsvController::class, 'store'])->middleware('throttle:10,1');

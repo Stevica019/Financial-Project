@@ -95,7 +95,7 @@ export default function Overview() {
             </Stack>
           </Paper>)}
         </DashboardPanel>
-        <DashboardPanel title="Recent activity" eyebrow="MONEY IN MOTION" to="/transactions" action="View transactions">
+        <DashboardPanel title="Recent activity" eyebrow="MONEY IN MOTION" to="/activity" action="View all activity">
           {data.recent_activity.length === 0 && <Paper variant="outlined" sx={{ p: 3 }}>No activity yet. Record income, an expense or a transfer to see it here.</Paper>}
           {data.recent_activity.length > 0 && <Paper variant="outlined" className="activity-list">
             {data.recent_activity.map(entry => <Box component="article" aria-label={entry.description || 'Transfer'} key={`${entry.kind}-${entry.id}`}>

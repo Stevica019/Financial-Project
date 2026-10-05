@@ -8,6 +8,7 @@ import ResourceManager from '../components/ResourceManager'
 import ActivityEditor from '../components/ActivityEditor'
 import ActivityRow from '../components/ActivityRow'
 import { browseFields } from '../components/activityFields'
+import { ActivityTabs } from '../components/SectionTabs'
 
 export default function Transactions() {
   const { accountId } = useParams()
@@ -25,8 +26,9 @@ export default function Transactions() {
     {accounts.data && categories.data && settings.data && <Stack spacing={2}>
       {accountId && <Button component={Link} to="/accounts" sx={{ alignSelf: 'flex-start' }}>Back to accounts</Button>}
       {accountId && !account ? <Typography>Account not found.</Typography> : <ResourceManager
-        key={accountId ?? 'all'} title={accountId ? `${account.name} history` : 'Transactions'} noun="transaction"
-        endpoint={accountId ? `/accounts/${accountId}/history` : '/transactions'} writeEndpoint="/transactions"
+        key={accountId ?? 'all'} title={accountId ? `${account.name} history` : 'Activity'} noun="transaction"
+        tabs={!accountId && <ActivityTabs />}
+        endpoint={accountId ? `/accounts/${accountId}/history` : '/activity'} writeEndpoint="/transactions"
         onSaved={accounts.refresh}
         browseFields={browseFields(accounts.data.data, categories.data.data, { history: Boolean(accountId) })}
         recordConfig={record => record?.kind === 'transfer' ? { noun: 'transfer', endpoint: '/transfers' } : {}}

@@ -175,6 +175,7 @@ class BrowsingAndTransfersTest extends TestCase
         $this->postJson('/api/transfers', [])->assertUnauthorized();
         $this->patchJson('/api/transfers/1', [])->assertUnauthorized();
         $this->deleteJson('/api/transfers/1')->assertUnauthorized();
+        $this->getJson('/api/activity')->assertUnauthorized();
     }
 
     public function test_combined_history_pages_each_record_once_and_filters_transfers_separately(): void
@@ -194,5 +195,21 @@ class BrowsingAndTransfersTest extends TestCase
         $this->getJson('/api/transfers?search=WITHDRAWAL&account_id='.$accounts[0]->id)->assertJsonPath('meta.total', 1);
         $this->getJson('/api/transfers?account_id='.$accounts[1]->id)->assertJsonPath('meta.total', 1);
         $this->getJson('/api/transfers?account_id='.$accounts[2]->id)->assertJsonPath('meta.total', 0);
+    }
+
+    public function test_activity_lists_entries_and_transfers_across_owned_accounts(): void
+    {
+        [$user, $accounts, $category] = $this->finances();
+        $this->entry($user, $accounts[2], $category);
+        $this->postJson('/api/transfers', $this->transfer($accounts))->assertCreated();
+        $other = User::factory()->create(['currency' => 'EUR', 'timezone' => 'UTC']);
+        $foreign = $other->accounts()->create(['name' => 'Other', 'type' => 'cash', 'opening_balance' => 0, 'opening_date' => '2026-01-01', 'is_active' => true]);
+        $foreignCategory = $other->categories()->create(['name' => 'Food', 'name_key' => 'food', 'type' => 'expense']);
+        $this->entry($other, $foreign, $foreignCategory);
+        $this->getJson('/api/activity')->assertOk()->assertJsonPath('meta.total', 2);
+        $this->getJson('/api/activity?type=transfer')->assertJsonPath('meta.total', 1)->assertJsonPath('data.0.kind', 'transfer');
+        $this->getJson('/api/activity?type=expense')->assertJsonPath('meta.total', 1)->assertJsonPath('data.0.kind', 'transaction');
+        $this->getJson('/api/activity?account_id='.$accounts[1]->id)->assertJsonPath('meta.total', 1)->assertJsonPath('data.0.kind', 'transfer');
+        $this->getJson('/api/activity?account_id='.$foreign->id)->assertUnprocessable()->assertJsonValidationErrors('account_id');
     }
 }

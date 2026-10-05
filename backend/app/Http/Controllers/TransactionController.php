@@ -15,6 +15,12 @@ class TransactionController extends Controller
         return ActivityResource::collection(ActivityBrowser::page($request));
     }
 
+    // Income, expenses and transfers across all accounts, with the same filters as an account history.
+    public function activity(Request $request)
+    {
+        return ActivityResource::collection(ActivityBrowser::page($request, 'history'));
+    }
+
     public function history(Request $request, string $account)
     {
         $account = $request->user()->accounts()->findOrFail($account);

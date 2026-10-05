@@ -49,7 +49,7 @@ test('manages budgets and recurring rules with validation and mobile navigation'
   await navigateWorkspace(page, 'Overview')
   await page.getByLabel('Summary month').fill('2026-02')
   await expect(page.getByRole('region', { name: 'Monthly budgets', exact: true })).toContainText('Spent: €12.01')
-  await navigateWorkspace(page, 'Recurring')
+  await navigateWorkspace(page, 'Activity', 'Scheduled')
   await page.getByRole('button', { name: 'Add rule' }).click()
   await page.getByLabel(/^Account/).selectOption(ids.account)
   await page.getByLabel(/^Category/).selectOption(ids.category)

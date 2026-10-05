@@ -7,6 +7,7 @@ import { useRemote } from '../useRemote'
 import FormField from '../components/FormField'
 import RemoteState from '../components/RemoteState'
 import AppearanceControl from '../components/AppearanceControl'
+import { SettingsTabs } from '../components/SectionTabs'
 
 function SettingsForm({ metadata }) {
   const { user, updateUser } = useAuth()
@@ -53,9 +54,11 @@ function SettingsForm({ metadata }) {
 export default function Settings() {
   const remote = useRemote('/settings')
   const { user } = useAuth()
+  // Categories and import need a currency first, so their tabs appear once preferences are saved.
+  const configured = Boolean(user.currency && user.timezone)
   return <Stack spacing={3}>
-    <Box><Typography component="h1" variant="h5">Settings</Typography>
-      <Typography color="text.secondary" sx={{ mt: 0.5 }}>Your profile, workspace appearance, and financial preferences.</Typography></Box>
+    <Typography component="h1" variant="h5">Settings</Typography>
+    {configured && <SettingsTabs />}
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
       <Paper component="section" aria-labelledby="profile-title" variant="outlined" sx={{ p: 3, minWidth: 0 }}>
         <Typography id="profile-title" component="h2" variant="h6">Profile</Typography>

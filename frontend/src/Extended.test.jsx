@@ -1,5 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import { api } from './api'
 import Budgets from './pages/Budgets'
@@ -36,7 +37,7 @@ test('failed pause keeps the active rule visible and a retry updates its status'
     return { data: { data: [{ id: 1, description: 'Rent', type: 'expense', amount: '50.00', frequency: 'monthly', start_date: '2026-01-01', next_execution_date: '2026-04-01', is_active: active }] } }
   })
   api.patch.mockRejectedValueOnce({ response: { status: 422, data: { errors: { account_id: ['Choose an active account to run this rule.'] } } } }).mockImplementationOnce(async () => { active = false })
-  render(<RecurringRules />)
+  render(<MemoryRouter><RecurringRules /></MemoryRouter>)
   const rule = await screen.findByRole('article', { name: 'Rent' })
   await userEvent.click(within(rule).getByRole('button', { name: 'Pause' }))
   expect(await screen.findByRole('alert')).toHaveTextContent('Choose an active account to run this rule.')

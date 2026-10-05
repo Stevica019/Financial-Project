@@ -4,7 +4,7 @@ import GoalProgress from '../components/GoalProgress'
 
 export default function SavingsGoals() {
   const { user } = useAuth()
-  return <ResourceManager title="Savings goals" noun="goal" endpoint="/savings-goals"
+  return <ResourceManager title="Savings goals" noun="goal" plural="savings goals" endpoint="/savings-goals"
     introduction="Track progress toward the things you are saving for."
     defaults={{ name: '', target_amount: '', current_amount: '0.00', target_date: '', description: '', status: 'active' }}
     fields={[

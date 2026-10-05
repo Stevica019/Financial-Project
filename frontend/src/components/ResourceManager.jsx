@@ -49,7 +49,8 @@ function groupRows(records, groupBy) {
 
 // layout="rows" renders compact clickable rows via `row`; clicking a row opens the editor, which owns deletion.
 // `editor` replaces the generic field-based dialog: ({ record, onClose, onSaved, onDelete }) => element.
-export default function ResourceManager({ title, noun, endpoint, writeEndpoint = endpoint, fields, defaults, details, archivable = false, archiveLabels = ['Archive', 'Unarchive'], onSaved, introduction, browseFields, recordConfig, layout = 'list', row, groupBy, editor: renderEditor, deleteNote }) {
+// `tabs` renders section navigation under the title, for pages that share a section title.
+export default function ResourceManager({ title, noun, plural = `${noun}s`, tabs, endpoint, writeEndpoint = endpoint, fields, defaults, details, archivable = false, archiveLabels = ['Archive', 'Unarchive'], onSaved, introduction, browseFields, recordConfig, layout = 'list', row, groupBy, editor: renderEditor, deleteNote }) {
   const [filters, setFilters] = useState({})
   const [page, setPage] = useState(1)
   const query = new URLSearchParams({ ...filters, page })
@@ -108,12 +109,13 @@ export default function ResourceManager({ title, noun, endpoint, writeEndpoint =
       <Typography component="h1" variant="h5">{title}</Typography>
       <Button variant="contained" startIcon={<Icon name="plus" />} disabled={busy || remote.loading || Boolean(remote.error)} onClick={() => { setError(''); setEditor({}) }}>Add {noun}</Button>
     </Stack>
+    {tabs}
     {introduction && <Typography color="text.secondary">{introduction}</Typography>}
     {browseFields && <BrowseControls fields={browseFields} onApply={applyFilters} />}
     {browseFields && <CsvExport filters={filters} scope={endpoint === '/transactions' ? 'transactions' : endpoint === '/transfers' ? 'transfers' : 'history'} accountId={endpoint.startsWith('/accounts/') ? endpoint.split('/')[2] : undefined} />}
     {error && !deleting && <Alert severity="error">{error}</Alert>}
     <RemoteState remote={remote}>
-      {remote.data?.data.length === 0 && <Paper variant="outlined" sx={{ p: 3 }}><Typography>{browseFields ? 'No activity matches these filters.' : `No ${title.toLowerCase()} yet. Add your first ${noun} to get started.`}</Typography></Paper>}
+      {remote.data?.data.length === 0 && <Paper variant="outlined" sx={{ p: 3 }}><Typography>{browseFields ? 'No activity matches these filters.' : `No ${plural} yet. Add your first ${noun} to get started.`}</Typography></Paper>}
       {layout === 'rows' ? records.length > 0 && <Paper variant="outlined" className="activity-list">
         {groupRows(records, grouped ? groupBy : null).map((group, index) => <Box key={index}>
           {group.label && <Typography component="h2" className="activity-group">{group.label}</Typography>}

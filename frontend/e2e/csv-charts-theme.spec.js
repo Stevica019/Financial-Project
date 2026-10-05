@@ -30,7 +30,7 @@ test('CSV preview, validation, import, filtered downloads, charts and appearance
       category: await write('categories', { name: 'CSV food', type: 'expense' }),
     }
   })
-  await navigateWorkspace(page, 'CSV import')
+  await navigateWorkspace(page, 'Settings', 'Import & export')
   const downloadTemplate = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Download CSV template' }).click()
   const template = await readFile(await (await downloadTemplate).path(), 'utf8')
@@ -51,12 +51,12 @@ test('CSV preview, validation, import, filtered downloads, charts and appearance
   await expect(page.getByRole('alert')).toContainText('Imported 0 records; skipped 2')
   await navigateWorkspace(page, 'Overview')
   await expect(page.getByRole('region', { name: 'Total balance', exact: true })).toContainText('€89.99')
-  await navigateWorkspace(page, 'Transactions')
+  await navigateWorkspace(page, 'Activity')
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Export CSV', exact: true }).click()
   const exported = await readFile(await (await download).path(), 'utf8')
   expect(exported).toContain('CSV lunch')
-  expect(exported).not.toContain('Cash move')
+  expect(exported).toContain('Cash move')
   await navigateWorkspace(page, 'Reports')
   await page.getByLabel('Report month').fill('2024-03')
   const bar = page.getByRole('button', { name: '2024-02: Net cash flow -€10.01' })

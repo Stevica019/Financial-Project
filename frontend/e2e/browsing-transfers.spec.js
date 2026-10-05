@@ -31,7 +31,7 @@ test('browses server pages, combines filters, recovers from validation and delet
   for (let i = 1; i <= 11; i++) {
     await create(page, 'transactions', { account_id: account.id, category_id: category.id, type: 'expense', amount: `${i}.00`, date: '2026-02-01', description: `Purchase ${i}`, notes: i === 3 ? 'Special receipt' : '' })
   }
-  await navigateWorkspace(page, 'Transactions')
+  await navigateWorkspace(page, 'Activity')
   await page.getByLabel('Results per page').selectOption('10')
   await page.getByLabel('Sort by').selectOption('amount')
   await page.getByLabel('Sort direction').selectOption('asc')
@@ -81,8 +81,9 @@ test('transfers money, shows direction in both histories, and corrects and delet
   await register(page)
   const bank = await create(page, 'accounts', { name: 'Bank', type: 'checking', opening_balance: '100', opening_date: '2026-01-01' })
   const cash = await create(page, 'accounts', { name: 'Cash', type: 'cash', opening_balance: '0', opening_date: '2026-01-01' })
-  await navigateWorkspace(page, 'Transfers')
-  await page.getByRole('button', { name: 'Add transfer' }).click()
+  await navigateWorkspace(page, 'Activity')
+  await page.getByRole('main').getByRole('button', { name: 'Add transaction' }).click()
+  await page.getByRole('dialog', { name: 'Add transaction' }).getByRole('button', { name: 'Transfer', exact: true }).click()
   await page.getByLabel(/^From account/).selectOption(String(bank.id))
   await page.getByLabel(/^To account/).selectOption(String(bank.id))
   await page.getByLabel(/^Amount/).fill('10.25')
